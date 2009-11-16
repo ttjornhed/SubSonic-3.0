@@ -13,6 +13,7 @@ using SubSonic.Extensions;
 using SubSonic.Linq.Translation;
 using SubSonic.Linq.Translation.MySql;
 using SubSonic.Linq.Translation.SQLite;
+using SubSonic.Linq.Translation.Oracle;
 using SubSonic.Query;
 
 namespace SubSonic.Linq.Structure
@@ -49,6 +50,9 @@ namespace SubSonic.Linq.Structure
             QueryLanguage lang;
             switch (_provider.Client)
             {
+                case DataClient.OracleClient:
+                    lang = new OracleLanguage(_provider);
+                    break;
                 case DataClient.MySqlClient:
                     lang = new MySqlLanguage(_provider);
                     break;

@@ -8,14 +8,20 @@ using SubSonic.Linq.Structure;
 
 #endregion
 
-namespace SubSonic.Linq.Translation.MySql
+namespace SubSonic.Linq.Translation.Oracle
 {
     /// <summary>
-    /// Formats a query expression into MySQL language syntax
+    /// Formats a query expression into Oracle language syntax
     /// </summary>
-    public class MySqlFormatter : TSqlFormatter
+    public class OracleFormatter : TSqlFormatter
     {
 
+        protected override Expression VisitTable(TableExpression table)
+        {
+            string tableName = table.Name.Replace("[", "").Replace("]", "");
+            TableExpression tableExpression = new TableExpression(table.Alias, tableName);
+            return tableExpression;
+        }
 
         protected override Expression VisitMemberAccess(MemberExpression m) {
             if (m.Member.DeclaringType == typeof(string)) {
@@ -332,6 +338,41 @@ namespace SubSonic.Linq.Translation.MySql
             throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
         }
 
+        protected override Expression VisitSource(Expression source)
+        {
+            
+            bool saveIsNested = this.isNested;
+            this.isNested = true;
+            switch ((DbExpressionType)source.NodeType)
+            {
+                case DbExpressionType.Table:
+                    TableExpression table = (TableExpression)source;
+                    sb.Append(table.Name.Replace("[", "").Replace("]",""));
+                    sb.Append(" ");
+                    sb.Append(GetAliasName(table.Alias));
+                    break;
+                case DbExpressionType.Select:
+                    SelectExpression select = (SelectExpression)source;
+                    sb.Append("(");
+                    this.AppendNewLine(Indentation.Inner);
+                    this.Visit(select);
+                    this.AppendNewLine(Indentation.Same);
+                    sb.Append(")");
+                    sb.Append(" ");
+                    sb.Append(GetAliasName(select.Alias));
+                    this.Indent(Indentation.Outer);
+                    break;
+                case DbExpressionType.Join:
+                    this.VisitJoin((JoinExpression)source);
+                    break;
+                default:
+                    throw new InvalidOperationException("Select source is not valid type");
+            }
+            this.isNested = saveIsNested;
+            return source;
+        
+        }
+
         
         protected override Expression VisitSelect(SelectExpression select)
         {
@@ -425,16 +466,17 @@ namespace SubSonic.Linq.Translation.MySql
         {
             if (column.Alias != null)
             {
-                sb.AppendFormat("`{0}`", GetAliasName(column.Alias));
-                sb.Append(".");
+                sb.AppendFormat("{0}", GetAliasName(column.Alias));
+                sb.Append(".\"");
             }
-            sb.AppendFormat("`{0}`", column.Name);
+            sb.AppendFormat("{0}", column.Name);
+            sb.Append("\"");
             return column;
         }
 
         public static string FormatExpression(Expression expression)
         {
-            MySqlFormatter formatter = new MySqlFormatter();
+            OracleFormatter formatter = new OracleFormatter();
             formatter.Visit(expression);
             return formatter.sb.ToString();
         }

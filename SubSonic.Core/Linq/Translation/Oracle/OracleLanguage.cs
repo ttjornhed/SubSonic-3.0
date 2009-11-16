@@ -2,14 +2,14 @@
 using SubSonic.DataProviders;
 using SubSonic.Linq.Structure;
 
-namespace SubSonic.Linq.Translation.MySql
+namespace SubSonic.Linq.Translation.Oracle
 {
     /// <summary>
-    /// MySQL specific QueryLanguage
+    /// TSQL specific QueryLanguage
     /// </summary>
-    public class MySqlLanguage : QueryLanguage
+    public class OracleLanguage : QueryLanguage
     {
-        public MySqlLanguage(IDataProvider provider) : base(provider)
+        public OracleLanguage(IDataProvider provider) : base(provider)
         {
         }
 
@@ -62,7 +62,7 @@ namespace SubSonic.Linq.Translation.MySql
 
         public override string Format(Expression expression)
         {
-            return MySqlFormatter.FormatExpression(expression);
+            return OracleFormatter.FormatExpression(expression);
         }
 
         private bool isPaged(Expression exp)
