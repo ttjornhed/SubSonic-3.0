@@ -16,11 +16,10 @@ namespace SubSonic.Linq.Translation.Oracle
     public class OracleFormatter : TSqlFormatter
     {
 
-        protected override Expression VisitTable(TableExpression table)
+        protected override Expression VisitNamedValue(NamedValueExpression value)
         {
-            string tableName = table.Name.Replace("[", "").Replace("]", "");
-            TableExpression tableExpression = new TableExpression(table.Alias, tableName);
-            return tableExpression;
+            sb.Append(":" + value.Name);
+            return value;
         }
 
         protected override Expression VisitMemberAccess(MemberExpression m) {

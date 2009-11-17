@@ -50,6 +50,7 @@ namespace SubSonic.Linq.Structure
             QueryLanguage lang;
             switch (_provider.Client)
             {
+                case DataClient.OracleDataAccessClient:
                 case DataClient.OracleClient:
                     lang = new OracleLanguage(_provider);
                     break;

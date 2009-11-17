@@ -30,6 +30,7 @@ namespace SubSonic.DataProviders
         MySqlClient,
         //OleDbClient,
         OracleClient,
+        OracleDataAccessClient,
         SQLite
     }
 

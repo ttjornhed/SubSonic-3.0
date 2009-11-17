@@ -32,6 +32,7 @@ namespace SubSonic.DataProviders
         public const string MySql = "MySql.Data.MySqlClient";
         //public const string OleDb = "System.Data.OleDb";
         public const string Oracle = "System.Data.OracleClient";
+        public const string OracleDataAccess = "Oracle.DataAccess.Client";
         public const string SqlLite = "System.Data.SQLite";
     }
 
@@ -436,11 +437,13 @@ namespace SubSonic.DataProviders
 
         private void DecideClient(string dbProviderTypeName)
         {
-            if(dbProviderTypeName.Matches(DbClientTypeName.MsSql))
+            if (dbProviderTypeName.Matches(DbClientTypeName.MsSql))
                 Client = DataClient.SqlClient;
             else if (dbProviderTypeName.Matches(DbClientTypeName.MySql))
                 Client = DataClient.MySqlClient;
             else if (dbProviderTypeName.Matches(DbClientTypeName.Oracle))
+                Client = DataClient.OracleClient;
+            else if (dbProviderTypeName.Matches(DbClientTypeName.OracleDataAccess))
                 Client = DataClient.OracleClient;
             else if (dbProviderTypeName.Matches(DbClientTypeName.SqlLite))
                 Client = DataClient.SQLite;
