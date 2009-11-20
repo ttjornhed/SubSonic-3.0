@@ -176,7 +176,7 @@ namespace SubSonic.Query
             InsertSetting setting = new InsertSetting
                                         {
                                             ColumnName = columnName,
-                                            ParameterName = _provider.ParameterPrefix + "ins_" + columnName.ToAlphaNumericOnly(),
+                                            ParameterName = _provider.ParameterPrefix + "ins_" + Guid.NewGuid().ToString().Replace('-','_').Substring(0,25),
                                             Value = columnValue,
                                             IsExpression = isExpression,
                                             DataType = dbType

@@ -161,6 +161,7 @@
     <Compile Include="Repository\SubSonicRepository.cs" />
     <Compile Include="Repository\TestRepository.cs" />
     <Compile Include="Schema\Migrator.cs" />
+    <Compile Include="SQLGeneration\OracleGenerator.cs" />
     <Compile Include="SQLGeneration\Schema\ANSISchemaGenerator.cs" />
     <Compile Include="Schema\DatabaseSchema.cs" />
     <Compile Include="Schema\IDatabaseSchema.cs" />

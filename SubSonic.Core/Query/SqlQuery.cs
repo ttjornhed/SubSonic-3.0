@@ -458,6 +458,9 @@ namespace SubSonic.Query
                     return new MySqlGenerator(this);
                 case DataClient.SQLite:
                     return new SQLiteGenerator(this);
+                case DataClient.OracleClient:
+                case DataClient.OracleDataAccessClient:
+                    return new OracleGenerator(this);
                 default:
                     return new Sql2005Generator(this);
             }

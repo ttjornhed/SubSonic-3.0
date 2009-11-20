@@ -252,7 +252,11 @@ namespace SubSonic.DataProviders
 
         public string ParameterPrefix
         {
-            get { return "@"; }
+            get {
+                if (Client == DataClient.OracleDataAccessClient || Client == DataClient.OracleClient)
+                    return ":";    
+                return "@"; 
+            }
         }
 
         public string Name
