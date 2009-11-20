@@ -358,7 +358,7 @@ namespace SubSonic.Extensions
                 var ar = item as IActiveRecord;
                 foreach (var dirty in ar.GetDirtyColumns())
                 {
-                    if (!dirty.IsPrimaryKey && !dirty.IsReadOnly)
+                    if (!dirty.IsReadOnly)
                         query.Set(dirty.Name).EqualTo(settings[dirty.Name]);
                 }
             }

@@ -363,15 +363,20 @@ namespace SubSonic.DataProviders
         public string QualifyTableName(ITable tbl)
         {
             string qualifiedTable;
-
+            string qualifiedFormat;
             switch(Client)
             {
                 case DataClient.MySqlClient:
                 case DataClient.SQLite:
                     qualifiedTable = String.Format("`{0}`", tbl.Name);
                     break;
+                case DataClient.OracleClient:
+                case DataClient.OracleDataAccessClient:
+                    qualifiedFormat = String.IsNullOrEmpty(tbl.SchemaName) ? "{1}" : "{0}.{1}";
+                    qualifiedTable = String.Format(qualifiedFormat, tbl.SchemaName, tbl.Name);
+                    break;
                 default:
-                    string qualifiedFormat = String.IsNullOrEmpty(tbl.SchemaName) ? "[{1}]" : "[{0}].[{1}]";
+                    qualifiedFormat = String.IsNullOrEmpty(tbl.SchemaName) ? "[{1}]" : "[{0}].[{1}]";
                     qualifiedTable = String.Format(qualifiedFormat, tbl.SchemaName, tbl.Name);
                     break;
             }
@@ -390,6 +395,10 @@ namespace SubSonic.DataProviders
                     break;
                 case DataClient.MySqlClient:
                     qualifiedFormat = String.IsNullOrEmpty(column.SchemaName) ? "`{2}`" : "`{0}`.`{1}`.`{2}`";
+                    break;
+                case DataClient.OracleDataAccessClient:
+                case DataClient.OracleClient:
+                    qualifiedFormat = String.IsNullOrEmpty(column.SchemaName) ? "{1}.{2}" : "{0}.{1}.{2}";
                     break;
                 default:
                     qualifiedFormat = String.IsNullOrEmpty(column.SchemaName) ? "[{1}].[{2}]" : "[{0}].[{1}].[{2}]";
@@ -462,12 +471,15 @@ namespace SubSonic.DataProviders
         /// <param name="qry">The qry.</param>
         private static void AddParams(DbCommand cmd, QueryCommand qry)
         {
-            if(qry.Parameters != null)
+                if(qry.Parameters != null)
             {
                 foreach(QueryParameter param in qry.Parameters)
                 {
                     DbParameter p = cmd.CreateParameter();
-                    p.ParameterName = param.ParameterName;
+                    if(param.ParameterName.StartsWith(":"))
+                        p.ParameterName = param.ParameterName.Substring(1);
+                    else
+                        p.ParameterName = param.ParameterName;
                     p.Direction = param.Mode;
                     p.DbType = param.DataType;
 
