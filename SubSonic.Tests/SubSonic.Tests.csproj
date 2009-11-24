@@ -36,6 +36,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\MySql.Data.dll</HintPath>
     </Reference>
+    <Reference Include="Oracle.DataAccess, Version=2.111.6.20, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Oracle.DataAccess.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
@@ -83,6 +87,8 @@
     <Compile Include="BugReports\LinqGeneratorBugs.cs" />
     <Compile Include="BugReports\Update.cs" />
     <Compile Include="DataProviders\ProviderFactoryTests.cs" />
+    <Compile Include="LINQ\OracleTests.cs" />
+    <Compile Include="Migrations\OracleMigrationTests.cs" />
     <Compile Include="SimpleQuery\BatchTests.cs" />
     <Compile Include="LINQ\MySqlTests.cs" />
     <Compile Include="LINQ\SQL2005Tests.cs" />

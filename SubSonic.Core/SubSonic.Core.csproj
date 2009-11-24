@@ -167,6 +167,7 @@
     <Compile Include="Schema\IDatabaseSchema.cs" />
     <Compile Include="Schema\IView.cs" />
     <Compile Include="SQLGeneration\MySqlGenerator.cs" />
+    <Compile Include="SQLGeneration\Schema\OracleSchema.cs" />
     <Compile Include="SQLGeneration\Schema\SQLiteSchema.cs" />
     <Compile Include="SQLGeneration\Schema\ISchemaGenerator.cs" />
     <Compile Include="SQLGeneration\Schema\SchemaAttributes.cs" />

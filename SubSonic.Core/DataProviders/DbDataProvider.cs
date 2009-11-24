@@ -85,6 +85,9 @@ namespace SubSonic.DataProviders
                         return new MySqlSchema();
                     case DataClient.SQLite:
                         return new SQLiteSchema();
+                    case DataClient.OracleDataAccessClient:
+                    case DataClient.OracleClient:
+                        return new OracleSchema();
                     default:
                         throw new ArgumentOutOfRangeException(Client.ToString(), "There is no generator for this client");
                 }
@@ -410,7 +413,17 @@ namespace SubSonic.DataProviders
 
         public string QualifySPName(IStoredProcedure sp)
         {
-            const string qualifiedFormat = "[{0}].[{1}]";
+            string qualifiedFormat;
+            switch (Client)
+            {
+                case DataClient.OracleDataAccessClient:
+                case DataClient.OracleClient:
+                    qualifiedFormat = String.IsNullOrEmpty(sp.SchemaName) ? "\"{1}\"" : "\"{0}\".\"{1}\"";
+                    break;
+                default:
+                    qualifiedFormat = "[{0}].[{1}]";
+                    break;
+            }
             return String.Format(qualifiedFormat, sp.SchemaName, sp.Name);
         }
 
