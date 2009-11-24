@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
@@ -118,31 +119,12 @@ namespace SubSonic.SqlGeneration.Schema
 
         public override string BuildAddColumnStatement(string tableName, IColumn column)
         {
-            var sql = new StringBuilder();
-
             //if we're adding a Non-null column to the DB schema, there has to be a default value
             //otherwise it will result in an error'
             if (!column.IsNullable && column.DefaultSetting == null)
-            {
                 SetColumnDefaults(column);
-            }
 
-            sql.AppendFormat(ADD_COLUMN, tableName, column.Name, GenerateColumnAttributes(column));
-
-            //TODO: I have no idea how to implement this for oracle, since it doesnt support multiple statements inline seperated by ';'.
-            //if the column isn't nullable and there are records already
-            //the default setting won't be honored and a null value could be entered (in SQLite for instance)
-            //enforce the default setting here
-            //if (!column.IsNullable)
-            //{
-            //    sql.AppendLine();
-            //    if (column.IsString || column.IsDateTime)
-            //        sql.AppendFormat("UPDATE {0} SET {1}='{2}';", tableName, column.Name, column.DefaultSetting);
-            //    else
-            //        sql.AppendFormat("UPDATE {0} SET {1}={2};", tableName, column.Name, column.DefaultSetting);
-            //}
-
-            return sql.ToString();
+            return string.Format(ADD_COLUMN, tableName, column.Name, GenerateColumnAttributes(column));
         }
 
         public override string GetNativeType(DbType dbType)
@@ -288,6 +270,18 @@ namespace SubSonic.SqlGeneration.Schema
                 default:
                     return DbType.String;
             }
+        }
+
+        public override void SetColumnDefaults(IColumn column)
+        {
+            if (column.IsNumeric)
+                column.DefaultSetting = 0;
+            else if (column.IsDateTime)
+                column.DefaultSetting = DateTime.Parse("1/1/1900");
+            else if (column.IsString)
+                column.DefaultSetting = " "; // I don't think there is anything reasonable we can put here. In oracle, empty string == NULL, so we can't use that.
+            else if (column.DataType == DbType.Boolean)
+                column.DefaultSetting = 0;
         }
     }
 }

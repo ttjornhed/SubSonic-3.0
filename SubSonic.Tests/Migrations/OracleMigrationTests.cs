@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Reflection;
 using SubSonic.DataProviders;
-using Xunit;
-using System.Reflection;
-using SubSonic.Schema;
 using SubSonic.Extensions;
+using SubSonic.Schema;
+using Xunit;
 
 namespace SubSonic.Tests.Migrations
 {    
@@ -65,7 +61,7 @@ namespace SubSonic.Tests.Migrations
 
         [Fact]
         public void CreateColumnSql_Should_Create_Valid_Sql() {
-            var shouldbe = @"ALTER TABLE ""SubSonicTests"" ADD UserName VARCHAR2(500) NOT NULL";
+            var shouldbe = @"ALTER TABLE ""SubSonicTests"" ADD UserName VARCHAR2(500) DEFAULT ' ' NOT NULL";
 
             var sql = typeof (SubSonicTest).ToSchemaTable(_provider).GetColumn("UserName").CreateSql;
             Assert.Equal(shouldbe, sql);
