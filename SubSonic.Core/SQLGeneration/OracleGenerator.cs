@@ -84,7 +84,6 @@ WHERE  Row >= {5} AND Row <= {6}";
             return toStrip.Replace("[", "").Replace("]", "");
         }
 
-
         /// <summary>
         /// Generates the constraints.
         /// </summary>
@@ -343,7 +342,6 @@ WHERE  Row >= {5} AND Row <= {6}";
                         "Need to specify Values or a Select query to insert - can't go on!");
                 }
             }
-            sb.AppendLine(";");
             if(query._provider.Client == DataClient.SqlClient)
                 sb.AppendLine("SELECT SCOPE_IDENTITY() as new_id");
             return sb.ToString();
