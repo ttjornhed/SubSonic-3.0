@@ -14,11 +14,11 @@ namespace SubSonic.SqlGeneration.Schema
         public OracleSchema()
             : base()
         {
-            ADD_COLUMN = @"ALTER TABLE ""{0}"" ADD {1}{2}";
-            ALTER_COLUMN = @"ALTER TABLE ""{0}"" MODIFY {1}{2}";
-            CREATE_TABLE = "CREATE TABLE \"{0}\" ({1}\r\n)";
-            DROP_COLUMN = @"ALTER TABLE ""{0}"" DROP COLUMN {1}";
-            DROP_TABLE = @"DROP TABLE ""{0}"" PURGE"; // i'm assuming people don't want to use oracle's stupid "recycle bin"-esque thing, and including the 'purge'.
+            ADD_COLUMN = "ALTER TABLE {0} ADD {1}{2}";
+            ALTER_COLUMN = "ALTER TABLE {0} MODIFY {1}{2}";
+            CREATE_TABLE = "CREATE TABLE {0} ({1}\r\n)";
+            DROP_COLUMN = "ALTER TABLE {0} DROP COLUMN {1}";
+            DROP_TABLE = "DROP TABLE {0} PURGE"; // i'm assuming people don't want to use oracle's stupid "recycle bin"-esque thing, and including the 'purge'.
         }
 
         public override string GenerateColumnAttributes(IColumn column)
@@ -103,12 +103,12 @@ namespace SubSonic.SqlGeneration.Schema
             var pkCols = new StringBuilder();
             foreach (var col in table.Columns)
             {
-                createSql.AppendFormat("\r\n  \"{0}\"{1},", col.Name, GenerateColumnAttributes(col));
+                createSql.AppendFormat("\r\n  {0}{1},", col.Name, GenerateColumnAttributes(col));
                 if (col.IsPrimaryKey)
                 {
                     if (pkCols.Length > 0)
                         pkCols.Append(", ");
-                    pkCols.Append(col.Name);
+                    pkCols.AppendFormat("{0}", col.Name);
                 }
             }
 

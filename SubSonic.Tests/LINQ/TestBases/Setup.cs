@@ -20,6 +20,7 @@ using SubSonic.Linq.Structure;
 using SubSonic.Query;
 using SubSonic.Schema;
 using SubSonic.Tests.TestClasses;
+using System.Text;
 
 namespace SubSonic.Tests.Linq.TestBases
 {
@@ -262,19 +263,30 @@ namespace SubSonic.Tests.Linq.TestBases
 
         public void DropTestTables()
         {
-            var sql = "DROP TABLE Products;\r\n";
-            sql += "DROP TABLE Orders;\r\n";
-            sql += "DROP TABLE OrderDetails;\r\n";
-            sql += "DROP TABLE Customers;\r\n";
-            sql += "DROP TABLE Categories;\r\n";
-
-            try
+            var sql = "DROP TABLE {0};";
+            if (_provider.Client == DataClient.OracleClient || _provider.Client == DataClient.OracleDataAccessClient)
             {
-                _provider.ExecuteQuery(new QueryCommand(sql, _provider));
+                sql = "DROP TABLE {0} PURGE"; // a purge a day keeps the DBAs away!
             }
-            catch(Exception x)
+
+            var tables = new string[] {
+                "Products",
+                "Orders",
+                "OrderDetails",
+                "Customers",
+                "Categories"
+            };
+
+            foreach(var t in tables)
             {
-                //do nothing - this is here to catch a DROP error
+                try
+                {
+                    _provider.ExecuteQuery(new QueryCommand(string.Format(sql, t), _provider));
+                }
+                catch(Exception x)
+                {
+                    //do nothing - this is here to catch a DROP error
+                }
             }
         }
     }

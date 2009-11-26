@@ -35,7 +35,7 @@ namespace SubSonic.Tests.Migrations
   ""SomeNullableFlag"" VARCHAR2(1),
   ""LongText"" CLOB NOT NULL,
   ""MediumText"" VARCHAR2(800) NOT NULL,
-  CONSTRAINT SubSonicTests_PK PRIMARY KEY (Key)
+  CONSTRAINT SubSonicTests_PK PRIMARY KEY (""Key"")
 )";
             
             var sql = typeof (SubSonicTest).ToSchemaTable(_provider).CreateSql;
