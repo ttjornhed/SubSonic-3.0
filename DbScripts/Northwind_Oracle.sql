@@ -1,5 +1,19 @@
 -- Start of DDL Script for Table NWIND.CATEGORIES
 -- Generated 19/01/07 19:41:29 from NWIND@INTELLIZ
+/**
+DROP TABLE categories PURGE;
+DROP TABLE customers PURGE;
+DROP TABLE employees PURGE;
+DROP TABLE employeeterritories PURGE;
+DROP TABLE orders PURGE;
+DROP TABLE orderdetails PURGE;
+DROP TABLE products PURGE;
+DROP TABLE region PURGE;
+DROP TABLE products PURGE;
+DROP TABLE shippers PURGE;
+DROP TABLE suppliers PURGE;
+DROP TABLE territories PURGE;
+**/
 
 CREATE TABLE categories
     (categoryid                     NUMBER(10,0) NOT NULL,
@@ -354,8 +368,51 @@ BEGIN
    :NEW.orderid := max_orderid;
 END;
 /
-
-
+CREATE TABLE region
+    (regid   NUMBER(10,0) NOT NULL, regname VARCHAR2(20) NOT NULL)
+  PCTFREE     10
+  INITRANS    2
+  MAXTRANS    255
+  TABLESPACE  users
+  STORAGE
+    (
+    INITIAL     65536
+    MINEXTENTS  1
+    MAXEXTENTS  2147483645
+    )
+/
+ALTER TABLE region
+ADD CONSTRAINT pk_region PRIMARY KEY(regid)
+USING INDEX
+  PCTFREE     10
+  INITRANS    2
+  MAXTRANS    255
+  TABLESPACE  users
+  STORAGE   (
+    INITIAL     65536
+    MINEXTENTS  1
+    MAXEXTENTS  2147483645
+  )
+/
+CREATE TABLE territories 
+	(territoryid NUMBER(10,0) NOT NULL,
+	territorydescription varchar2 (50) NOT NULL ,
+  regionid number(10,0) NOT NULL)
+  PCTFREE     10
+  INITRANS    2
+  MAXTRANS    255
+  TABLESPACE  users
+  STORAGE
+    (
+    INITIAL     65536
+    MINEXTENTS  1
+    MAXEXTENTS  2147483645
+    )
+/
+ALTER TABLE territories
+ADD CONSTRAINT pk_territories PRIMARY KEY(territoryid)
+ADD CONSTRAINT fk1_territories FOREIGN KEY (regionid)
+REFERENCES region (regid)
 -- End of DDL Script for Table NWIND.ORDERS
 
 -- Foreign Key
@@ -370,6 +427,27 @@ REFERENCES shippers (shipperid)
 ALTER TABLE orders
 ADD CONSTRAINT fk_orders FOREIGN KEY (customerid)
 REFERENCES customers (customerid)
+/
+
+CREATE TABLE employeeterritories 
+	(employeeid number(10,0) NOT NULL,
+	territoryid number(10,0) NOT NULL)
+  PCTFREE     10
+  INITRANS    2
+  MAXTRANS    255
+  TABLESPACE  users
+  STORAGE
+    (
+    INITIAL     65536
+    MINEXTENTS  1
+    MAXEXTENTS  2147483645
+    )
+ALTER TABLE employeeterritories
+ADD CONSTRAINT fk1_employeeterritories FOREIGN KEY(employeeid)
+REFERENCES employees (employeeid)
+ALTER TABLE employeeterritories
+ADD CONSTRAINT fk2_employeeterritories FOREIGN KEY (territoryid)
+REFERENCES territories (territoryid)
 /
 -- End of DDL script for Foreign Key(s)
 -- Start of DDL Script for Table NWIND.PRODUCTS

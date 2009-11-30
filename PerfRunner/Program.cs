@@ -14,6 +14,7 @@
 using System;
 using System.Linq;
 using Southwind;
+//using DataObjects;
 using SubSonic.DataProviders;
 using SubSonic.Query;
 using SubSonic.Repository;
@@ -30,68 +31,78 @@ namespace PerfRunner
 
         private static readonly IDataProvider sql2008Provider = ProviderFactory.GetProvider(TestConfiguration.MsSql2008TestConnectionString, DbClientTypeName.MsSql);
 
+        private static readonly IDataProvider OracleProvider = ProviderFactory.GetProvider(TestConfiguration.OracleTestConnectionString, DbClientTypeName.Oracle);
+        private const int NUMTESTS = 100; //10000
         private static void Main(string[] args)
         {
             //SubSonic.Tests.ActiveRecord.FetchTests.ActiveRecord_Should_Return_10_Products_LessOrEqual_To_10();
             //SubSonic.Tests.ActiveRecord.FetchTests.ActiveRecord_Should_Return_10_Products_Paged();
-            //RunSimpleRepoSelects();
+            RunInserts();
+
+            RunSimpleRepoSelects();
             RunIQSelects();
-            //RunSimpleQuerySelects();
-            //RunAR();
-            //RunARLists();
+            RunSimpleQuerySelects();
+            RunAR();
+            RunARLists();
             Console.WriteLine("Done");
             Console.ReadLine();
         }
 
         private static void RunARLists()
         {
-            SelectActiveRecordList(mySqlProvider);
-            SelectActiveRecordList(sql2005Provider);
-            SelectActiveRecordList(sql2008Provider);
+            //SelectActiveRecordList(mySqlProvider);
+            //SelectActiveRecordList(sql2005Provider);
+            //SelectActiveRecordList(sql2008Provider);
+            SelectActiveRecordList(OracleProvider);
         }
 
         private static void RunAR()
         {
-            SelectActiveRecord(mySqlProvider);
-            SelectActiveRecord(sql2005Provider);
-            SelectActiveRecord(sql2008Provider);
+            //SelectActiveRecord(mySqlProvider);
+            //SelectActiveRecord(sql2005Provider);
+            //SelectActiveRecord(sql2008Provider);
+            SelectActiveRecord(OracleProvider);
         }
 
         private static void RunSimpleQuerySelects()
         {
-            SelectSimpleQuery(mySqlProvider);
-            SelectSimpleQuery(sql2005Provider);
-            SelectSimpleQuery(sql2008Provider);
+            //SelectSimpleQuery(mySqlProvider);
+            //SelectSimpleQuery(sql2005Provider);
+            //SelectSimpleQuery(sql2008Provider);
+            SelectSimpleQuery(OracleProvider);
         }
 
         private static void RunSimpleRepoSelects()
         {
-            SelectSimpleRepo(mySqlProvider);
-            SelectSimpleRepo(sql2005Provider);
-            SelectSimpleRepo(sql2008Provider);
+            //SelectSimpleRepo(mySqlProvider);
+            //SelectSimpleRepo(sql2005Provider);
+            //SelectSimpleRepo(sql2008Provider);
+            SelectSimpleRepo(OracleProvider);
         }
 
         private static void RunIQSelects()
         {
-            SelectIQueryable(mySqlProvider);
-            SelectIQueryable(sql2005Provider);
-            SelectIQueryable(sql2008Provider);
+            //            SelectIQueryable(mySqlProvider);
+            //            SelectIQueryable(sql2005Provider);
+            //            SelectIQueryable(sql2008Provider);
+            SelectIQueryable(OracleProvider);
         }
 
         private static void RunInserts()
         {
-            RunInsert(mySqlProvider);
-            RunInsert(sql2005Provider);
-            RunInsert(sql2008Provider);
+            //RunInsert(mySqlProvider);
+            //RunInsert(sql2005Provider);
+            //RunInsert(sql2008Provider);
+            RunInsert(OracleProvider);
         }
 
         private static void SelectActiveRecordList(IDataProvider provider)
         {
-            Console.WriteLine("Selecting 1000 records of 10/each with AR: " + DateTime.Now + " using " + provider.Client);
+            Console.WriteLine("Selecting " + decimal.Round(NUMTESTS / 10,0).ToString() + " records of 10/each with AR: " + DateTime.Now + " using " + provider.Client);
             DateTime start = DateTime.Now;
-            for(int i = 1; i < 1000; i++)
+            for (int i = 1; i < (NUMTESTS/10); i++)//1000
             {
-                var p = Product.Find(x => x.ProductID > 0 && x.ProductID <= 10);
+                var p = PRODUCT.Find(x => x.PRODUCTID > 0 && x.PRODUCTID <= 10);
                 Console.WriteLine(i);
             }
             DateTime end = DateTime.Now;
@@ -101,11 +112,11 @@ namespace PerfRunner
 
         private static void SelectActiveRecord(IDataProvider provider)
         {
-            Console.WriteLine("Selecting 10000 records with AR: " + DateTime.Now + " using " + provider.Client);
+            Console.WriteLine("Selecting " + NUMTESTS.ToString() + " records with AR: " + DateTime.Now + " using " + provider.Client);
             DateTime start = DateTime.Now;
-            for(int i = 1; i < 10000; i++)
+            for(int i = 1; i < NUMTESTS; i++)
             {
-                var p = Product.SingleOrDefault(x => x.ProductID == 1, provider.ConnectionString, provider.DbDataProviderName);
+                var p = PRODUCT.SingleOrDefault(x => x.PRODUCTID == 1, provider.ConnectionString, provider.DbDataProviderName);
                 Console.WriteLine(i);
             }
             DateTime end = DateTime.Now;
@@ -115,9 +126,9 @@ namespace PerfRunner
 
         private static void SelectSimpleQuery(IDataProvider provider)
         {
-            Console.WriteLine("Selecting 10000 records with SimpleQuery: " + DateTime.Now + " using " + provider.Client);
+            Console.WriteLine("Selecting " + NUMTESTS.ToString() + " records with SimpleQuery: " + DateTime.Now + " using " + provider.Client);
             DateTime start = DateTime.Now;
-            for(int i = 1; i < 10000; i++)
+            for(int i = 1; i < NUMTESTS; i++)
             {
                 SubSonic.Tests.TestClasses.Product p =
                     new Select(provider).From<SubSonic.Tests.TestClasses.Product>().Where("ProductID").IsEqualTo(1).ExecuteSingle<SubSonic.Tests.TestClasses.Product>();
@@ -130,10 +141,10 @@ namespace PerfRunner
 
         private static void SelectSimpleRepo(IDataProvider provider)
         {
-            Console.WriteLine("Selecting 10000 records with SimpleRepo: " + DateTime.Now + " using " + provider.Client);
+            Console.WriteLine("Selecting " + NUMTESTS.ToString() + " records with SimpleRepo: " + DateTime.Now + " using " + provider.Client);
             var repo = new SimpleRepository(provider);
             DateTime start = DateTime.Now;
-            for(int i = 1; i < 10000; i++)
+            for(int i = 1; i < NUMTESTS; i++)
             {
                 SubSonic.Tests.TestClasses.Product p = repo.Single<SubSonic.Tests.TestClasses.Product>(1);
                 Console.WriteLine(i);
@@ -145,10 +156,10 @@ namespace PerfRunner
 
         private static void SelectIQueryable(IDataProvider provider)
         {
-            Console.WriteLine("Selecting 10000 records with IQueryable: " + DateTime.Now + " using " + provider.Client);
+            Console.WriteLine("Selecting " + NUMTESTS.ToString() + " records with IQueryable: " + DateTime.Now + " using " + provider.Client);
             var db = new TestDB(provider);
             DateTime start = DateTime.Now;
-            for(int i = 1; i < 10000; i++)
+            for(int i = 1; i < NUMTESTS; i++)
             {
                 SubSonic.Tests.TestClasses.Product p = db.Products.SingleOrDefault(x => x.ProductID == 1);
                 Console.WriteLine(i);
@@ -163,9 +174,9 @@ namespace PerfRunner
             ResetDB(provider);
 
             var repo = new SimpleRepository(provider);
-            Console.WriteLine("Inserting 1000 rows using Simple Repo: " + DateTime.Now + " using " + provider.Client);
+            Console.WriteLine("Inserting" + NUMTESTS.ToString() + " rows using Simple Repo: " + DateTime.Now + " using " + provider.Client);
             DateTime start = DateTime.Now;
-            for(int i = 1; i < 1000; i++)
+            for (int i = 1; i < NUMTESTS; i++)
             {
                 SubSonic.Tests.TestClasses.Product p = new SubSonic.Tests.TestClasses.Product();
                 p.CategoryID = 1;
@@ -174,7 +185,7 @@ namespace PerfRunner
                 p.Sku = Guid.NewGuid();
                 p.UnitPrice = 1000;
                 repo.Add(p);
-                //Console.WriteLine(i);
+                Console.WriteLine(i);
             }
             DateTime end = DateTime.Now;
             TimeSpan ts = end.Subtract(start);
