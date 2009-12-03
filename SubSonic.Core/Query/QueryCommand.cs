@@ -377,7 +377,7 @@ namespace SubSonic.Query
             {
                 DbParameter p = cmd.CreateParameter();
                 p.ParameterName = param.ParameterName;
-                p.Value = param.ParameterValue ?? DBNull.Value;
+                p.Value = Provider.ConvertDataTypeForParameter(param.ParameterValue ?? DBNull.Value);
                 p.DbType = param.DataType;
                 cmd.Parameters.Add(p);
             }

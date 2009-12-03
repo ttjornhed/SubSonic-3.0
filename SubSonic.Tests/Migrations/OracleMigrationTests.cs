@@ -22,7 +22,7 @@ namespace SubSonic.Tests.Migrations
         {
             var shouldbe =
                 @"CREATE TABLE SubSonicTests (
-  Key VARCHAR2(16) NOT NULL,
+  Key CHAR(16) NOT NULL,
   Thinger NUMBER(9,0) NOT NULL,
   Name VARCHAR2(255) NOT NULL,
   UserName VARCHAR2(500) NOT NULL,
@@ -75,5 +75,66 @@ namespace SubSonic.Tests.Migrations
             Assert.Equal(shouldbe, sql);
         }
 
+        #region test sequence generation for numeric PKs
+
+        [Fact]
+        public void CreateTable_With_Numeric_PK_Should_Create_Sequence_And_Trigger()
+        {
+            var shouldbe =
+                @"DECLARE
+BEGIN
+
+EXECUTE IMMEDIATE '
+CREATE TABLE SubSonicTest2s (
+  SubSonicTest2ID NUMBER(18,0) NOT NULL,
+  String VARCHAR2(1) NOT NULL,
+  CONSTRAINT SubSonicTest2s_PK PRIMARY KEY (SubSonicTest2ID)
+)';
+
+  DECLARE
+    seq_cnt INT;
+  BEGIN
+    SELECT COUNT(*) INTO seq_cnt FROM ALL_SEQUENCES WHERE SEQUENCE_NAME = 'SUBSONICTEST2S_SUBSONICTES_SEQ';
+    IF (seq_cnt = 0) THEN
+      EXECUTE IMMEDIATE 'CREATE SEQUENCE SUBSONICTEST2S_SUBSONICTES_SEQ START WITH 1 INCREMENT BY 1';
+    END IF;
+  END;
+
+EXECUTE IMMEDIATE '
+  CREATE TRIGGER SUBSONICTEST2S_SUBSONICTEST_BI
+    BEFORE INSERT ON SubSonicTest2s
+    FOR EACH ROW
+  DECLARE
+  BEGIN
+    SELECT SUBSONICTEST2S_SUBSONICTES_SEQ.NEXTVAL INTO :NEW.SubSonicTest2ID FROM DUAL;
+  END;';
+
+END;";
+
+            var sql = typeof(SubSonicTest2).ToSchemaTable(_provider).CreateSql;
+            Assert.Equal(shouldbe, sql);
+        }
+
+        [Fact]
+        public void DropTable_With_Numeric_PK_Should_Drop_Sequence()
+        {
+            var shouldbe =
+                @"DECLARE
+BEGIN
+  EXECUTE IMMEDIATE 'DROP TABLE SubSonicTest2s PURGE';
+  DECLARE
+    seq_cnt INT;
+  BEGIN
+    SELECT COUNT(*) INTO seq_cnt FROM ALL_SEQUENCES WHERE SEQUENCE_NAME = 'SUBSONICTEST2S_SUBSONICTES_SEQ';
+    IF (seq_cnt > 0) THEN
+      EXECUTE IMMEDIATE 'DROP SEQUENCE SUBSONICTEST2S_SUBSONICTES_SEQ';
+    END IF;
+  END;
+END;";
+
+            var sql = typeof(SubSonicTest2).ToSchemaTable(_provider).DropSql;
+            Assert.Equal(shouldbe, sql);
+        }
+        #endregion
     }
 }

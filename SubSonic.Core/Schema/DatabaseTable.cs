@@ -119,7 +119,7 @@ namespace SubSonic.Schema
 
         public string DropSql
         {
-            get { return Provider.SchemaGenerator.BuildDropTableStatement(QualifiedName); }
+            get { return Provider.SchemaGenerator.BuildDropTableStatement(this); }
         }
 
         public string DropColumnSql(string columnName)

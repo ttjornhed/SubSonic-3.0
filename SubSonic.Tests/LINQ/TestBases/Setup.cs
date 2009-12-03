@@ -263,27 +263,21 @@ namespace SubSonic.Tests.Linq.TestBases
 
         public void DropTestTables()
         {
-            var sql = "DROP TABLE {0};";
-            if (_provider.Client == DataClient.OracleClient || _provider.Client == DataClient.OracleDataAccessClient)
-            {
-                sql = "DROP TABLE {0} PURGE"; // a purge a day keeps the DBAs away!
-            }
-
-            var tables = new string[] {
-                "Products",
-                "Orders",
-                "OrderDetails",
-                "Customers",
-                "Categories"
+            var tables = new Type[] {
+                typeof(Product),
+                typeof(Order),
+                typeof(OrderDetail),
+                typeof(Customer),
+                typeof(Category)
             };
 
             foreach(var t in tables)
             {
                 try
                 {
-                    _provider.ExecuteQuery(new QueryCommand(string.Format(sql, t), _provider));
+                    _provider.ExecuteQuery(new QueryCommand(t.ToSchemaTable(_provider).DropSql, _provider));
                 }
-                catch(Exception x)
+                catch(Exception)
                 {
                     //do nothing - this is here to catch a DROP error
                 }

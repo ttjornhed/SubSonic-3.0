@@ -29,9 +29,9 @@ namespace SubSonic.SqlGeneration.Schema
         /// <summary>
         /// Builds a DROP TABLE statement.
         /// </summary>
-        /// <param name="tableName">Name of the table.</param>
+        /// <param name="table">The table to drop.</param>
         /// <returns></returns>
-        string BuildDropTableStatement(string tableName);
+        string BuildDropTableStatement(ITable table);
 
         /// <summary>
         /// Adds the column.
@@ -80,5 +80,15 @@ namespace SubSonic.SqlGeneration.Schema
         ITable GetTableFromDB(IDataProvider provider, string tableName);
         string[] GetTableList(IDataProvider provider);
         DbType GetDbType(string sqlType);
+
+        /// <summary>
+        /// This method is a place to convert data types before they are added to a DbParameter's Value.
+        /// This can be used to convert object to a different data type incase a DB provider doesn't natively
+        /// support that type. For example, Oracle doesn't support 'bool' so it needs to be converted to a
+        /// string or number instead.
+        /// </summary>
+        /// <param name="input">The original data.</param>
+        /// <returns>The object to set the parameter's value to.</returns>
+        object ConvertDataTypeForParameter(object input);
     }
 }
