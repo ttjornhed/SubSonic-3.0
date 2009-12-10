@@ -346,7 +346,7 @@ namespace SubSonic.Linq.Translation.Oracle
             {
                 case DbExpressionType.Table:
                     TableExpression table = (TableExpression)source;
-                    sb.Append(table.Name.Replace("[", "").Replace("]",""));
+                    sb.Append(table.Name.Replace("[", "").Replace("]", ""));
                     sb.Append(" ");
                     sb.Append(GetAliasName(table.Alias));
                     break;
@@ -468,10 +468,11 @@ namespace SubSonic.Linq.Translation.Oracle
             if (column.Alias != null)
             {
                 sb.AppendFormat("{0}", GetAliasName(column.Alias));
-                sb.Append(".\"");
+                sb.Append("."); //MAA,20091127:  remove quotes in column names
+                //sb.Append(".\"");
             }
             sb.AppendFormat("{0}", column.Name);
-            sb.Append("\"");
+            //sb.Append("\"");//MAA,20091127:  remove quotes in column names
             return column;
         }
 

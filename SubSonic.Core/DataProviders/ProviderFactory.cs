@@ -14,7 +14,6 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-
 namespace SubSonic.DataProviders
 {
     public static class ProviderFactory
@@ -65,12 +64,20 @@ namespace SubSonic.DataProviders
 
         internal static IDataProvider LoadProvider(string connectionString, string providerName)
         {
-            //TODO: This is throwing errors and not working
-
-            IDataProvider result = new DbDataProvider(connectionString, providerName);
-
-            if(result == null)
+            //re:  "This is throwing errors and not working",
+            //MAA,20091127:  I had to remove the SystemData section from the App.config to get this to work.  Also check the machine.config for correct entries.
+            IDataProvider result = null;
+            try
+            {
+                result = new DbDataProvider(connectionString, providerName);
+            }
+            catch (Exception)
+            {
                 throw new InvalidOperationException("There is no SubSonic provider for the provider you're using");
+            }
+
+            //if(result == null)
+            //    throw new InvalidOperationException("There is no SubSonic provider for the provider you're using");
 
             return result;
         }

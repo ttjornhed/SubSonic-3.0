@@ -20,6 +20,7 @@ using SubSonic.Linq.Structure;
 using SubSonic.Query;
 using SubSonic.Schema;
 using SubSonic.Tests.TestClasses;
+using System.Text;
 
 namespace SubSonic.Tests.Linq.TestBases
 {
@@ -262,19 +263,24 @@ namespace SubSonic.Tests.Linq.TestBases
 
         public void DropTestTables()
         {
-            var sql = "DROP TABLE Products;\r\n";
-            sql += "DROP TABLE Orders;\r\n";
-            sql += "DROP TABLE OrderDetails;\r\n";
-            sql += "DROP TABLE Customers;\r\n";
-            sql += "DROP TABLE Categories;\r\n";
+            var tables = new Type[] {
+                typeof(Product),
+                typeof(Order),
+                typeof(OrderDetail),
+                typeof(Customer),
+                typeof(Category)
+            };
 
-            try
+            foreach(var t in tables)
             {
-                _provider.ExecuteQuery(new QueryCommand(sql, _provider));
-            }
-            catch(Exception x)
-            {
-                //do nothing - this is here to catch a DROP error
+                try
+                {
+                    _provider.ExecuteQuery(new QueryCommand(t.ToSchemaTable(_provider).DropSql, _provider));
+                }
+                catch(Exception)
+                {
+                    //do nothing - this is here to catch a DROP error
+                }
             }
         }
     }

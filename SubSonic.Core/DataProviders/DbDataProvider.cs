@@ -482,7 +482,7 @@ namespace SubSonic.DataProviders
         /// </summary>
         /// <param name="cmd">The CMD.</param>
         /// <param name="qry">The qry.</param>
-        private static void AddParams(DbCommand cmd, QueryCommand qry)
+        private void AddParams(DbCommand cmd, QueryCommand qry)
         {
                 if(qry.Parameters != null)
             {
@@ -512,13 +512,13 @@ namespace SubSonic.DataProviders
                         if (!String.IsNullOrEmpty(paramValue))
                         {
                             if(!paramValue.Equals("DEFAULT", StringComparison.InvariantCultureIgnoreCase))
-                                p.Value = new Guid(paramValue);
+                                p.Value = ConvertDataTypeForParameter(new Guid(paramValue));
                         }
                         else
                             p.Value = DBNull.Value;
                     }
                     else
-                        p.Value = param.ParameterValue;
+                        p.Value = ConvertDataTypeForParameter(param.ParameterValue);
 
                     cmd.Parameters.Add(p);
                 }
@@ -537,6 +537,11 @@ namespace SubSonic.DataProviders
             if(conn.State == ConnectionState.Closed)
                 conn.Open();
             return conn;
+        }
+
+        public object ConvertDataTypeForParameter(object input)
+        {
+            return SchemaGenerator.ConvertDataTypeForParameter(input);
         }
     }
 }

@@ -33,7 +33,7 @@ namespace SubSonic.Tests.LINQ
         {
             _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
             var setup = new Setup(_db.Provider);
-            //setup.DropTestTables();
+            setup.DropTestTables();
             setup.CreateTestTable();
             setup.LoadTestData();
         }

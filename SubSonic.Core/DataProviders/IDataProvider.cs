@@ -63,6 +63,17 @@ namespace SubSonic.DataProviders
         ITable FindOrCreateTable<T>() where T : new();
         ITable FindOrCreateTable(Type type);
         DbCommand CreateCommand();
+
+        /// <summary>
+        /// This method is a place to convert data types before they are added to a DbParameter's Value.
+        /// This can be used to convert object to a different data type incase a DB provider doesn't natively
+        /// support that type. For example, Oracle doesn't support 'bool' so it needs to be converted to a
+        /// string or number instead.
+        /// </summary>
+        /// <param name="input">The original data.</param>
+        /// <returns>The object to set the parameter's value to.</returns>
+        object ConvertDataTypeForParameter(object input);
+
         //SQL formatting
         string QualifyTableName(ITable tbl);
         string QualifyColumnName(IColumn column);
