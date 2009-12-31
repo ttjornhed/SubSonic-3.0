@@ -179,12 +179,12 @@ namespace SubSonic.Extensions
                     else{
 
 					    var val = rdr.GetValue(i);
-					    var valType = val.GetType();
+					    var valType = currentProp.PropertyType;
                         //try to assign it
-                        if (val.GetType().IsAssignableFrom(valueType)){
+                        if (valType.IsAssignableFrom(valueType)){
                             currentProp.SetValue(item, val, null);
                         } else {
-                            currentProp.SetValue(item, rdr.GetValue(i).ChangeTypeTo(valueType), null);
+                            currentProp.SetValue(item, val.ChangeTypeTo(valType), null);
                             
                         }
 
