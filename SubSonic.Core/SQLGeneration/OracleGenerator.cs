@@ -67,7 +67,7 @@ WHERE  Row >= {5} AND Row <= {6}";
             string orderby = GenerateOrderBy();
 
             if(String.IsNullOrEmpty(orderby.Trim()))
-                orderby = String.Concat(SqlFragment.ORDER_BY, idColumn);
+                orderby = String.Concat(this.sqlFragment.ORDER_BY, idColumn);
 
             if(qry.Aggregates.Count > 0)
                 joins = String.Concat(joins, GenerateGroupBy());
@@ -90,10 +90,10 @@ WHERE  Row >= {5} AND Row <= {6}";
         /// <returns></returns>
         public override string GenerateConstraints()
         {
-            string whereOperator = SqlFragment.WHERE;
+            string whereOperator = this.sqlFragment.WHERE;
 
             if (query.Aggregates.Count > 0 && query.Aggregates.Any(x => x.AggregateType == AggregateFunction.GroupBy))
-                whereOperator = SqlFragment.HAVING;
+                whereOperator = this.sqlFragment.HAVING;
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine();
@@ -166,18 +166,18 @@ WHERE  Row >= {5} AND Row <= {6}";
                 if (c.Comparison == Comparison.BetweenAnd)
                 {
                     sb.Append(columnName);
-                    sb.Append(SqlFragment.BETWEEN);
+                    sb.Append(this.sqlFragment.BETWEEN);
                     sb.Append(c.ParameterName + "_start");
-                    sb.Append(SqlFragment.AND);
+                    sb.Append(this.sqlFragment.AND);
                     sb.Append(c.ParameterName + "_end");
                 }
                 else if (c.Comparison == Comparison.In || c.Comparison == Comparison.NotIn)
                 {
                     sb.Append(columnName);
                     if (c.Comparison == Comparison.In)
-                        sb.Append(SqlFragment.IN);
+                        sb.Append(this.sqlFragment.IN);
                     else
-                        sb.Append(SqlFragment.NOT_IN);
+                        sb.Append(this.sqlFragment.NOT_IN);
 
                     sb.Append("(");
 
@@ -262,7 +262,7 @@ WHERE  Row >= {5} AND Row <= {6}";
 
             //cast it
 
-            sb.Append(SqlFragment.UPDATE);
+            sb.Append(this.sqlFragment.UPDATE);
             sb.Append(stripBraces(query.FromTables[0].QualifiedName));
 
             for (int i = 0; i < query.SetStatements.Count; i++)
@@ -270,7 +270,7 @@ WHERE  Row >= {5} AND Row <= {6}";
                 if (i == 0)
                 {
                     sb.AppendLine(" ");
-                    sb.Append(SqlFragment.SET);
+                    sb.Append(this.sqlFragment.SET);
                 }
                 else
                     sb.AppendLine(", ");
@@ -306,7 +306,7 @@ WHERE  Row >= {5} AND Row <= {6}";
 
             //cast it
             Insert i = insert;
-            sb.Append(SqlFragment.INSERT_INTO);
+            sb.Append(this.sqlFragment.INSERT_INTO);
             sb.Append(stripBraces(i.Table.QualifiedName));
             sb.Append("(");
             sb.Append(stripBraces(i.SelectColumns));
