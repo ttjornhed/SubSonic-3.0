@@ -178,16 +178,19 @@ namespace SubSonic.Extensions
                     }
                     //MAbraham1, 2009/11/18:  if property type is integer, why convert to decimal (valueType)?
                     //see also:  http://geekswithblogs.net/GruffCode/archive/2009/11/18/why-does-subsonicrsquos-simplerepository-lsquoaddlttgtrsquo-return-a-decimal-instead-of-again.aspx
-                    else
-                        try
-                        {
-                            currentProp.SetValue(item, rdr.GetValue(i).ChangeTypeTo(valueType), null);
+                    else{
+
+					    var val = rdr.GetValue(i);
+					    var valType = currentProp.PropertyType;
+                        //try to assign it
+                        if (valType.IsAssignableFrom(valueType)){
+                            currentProp.SetValue(item, val, null);
+                        } else {
+                            currentProp.SetValue(item, val.ChangeTypeTo(valType), null);
+                            
                         }
-                        catch (Exception)
-                        {
-                            currentProp.SetValue(item, rdr.GetValue(i).ChangeTypeTo(currentProp.PropertyType), null);
-                            //throw;  //eat it.
-                        }
+
+					}
                 }
                 else if (currentField != null && !DBNull.Value.Equals(rdr.GetValue(i)))
                 {
