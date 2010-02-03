@@ -293,10 +293,10 @@ namespace SubSonic.Linq.Structure
             		}
             		else {
             			if (query.ColumnNames.Count != 0) {//mike check to see if we have ColumnNames
-							result = reader.ToEnumerable<T>(query.ColumnNames);
+                            result = reader.ToEnumerable<T>(query.ColumnNames, query.Projector);
 						}
             			else {
-            				result = reader.ToEnumerable<T>(null);
+            				result = reader.ToEnumerable<T>(null, query.Projector);
             			}
             		}
 
