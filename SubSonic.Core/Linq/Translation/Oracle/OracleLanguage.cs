@@ -65,6 +65,11 @@ namespace SubSonic.Linq.Translation.Oracle
             return OracleFormatter.FormatExpression(expression);
         }
 
+        public override Expression Parameterize(Expression expression)
+        {
+            return OracleParameterizer.Parameterize(expression);
+        }
+
         private bool isPaged(Expression exp)
         {
             bool result = false;

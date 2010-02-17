@@ -33,6 +33,7 @@ namespace SubSonic.Tests.Linq.TestBases
         public TestDB(IDataProvider provider)
         {
             _provider = provider;
+            _queryProvider = new DbQueryProvider(_provider);
 
             Products = new Query<Product>(provider);
             Customers = new Query<Customer>(provider);
@@ -133,6 +134,11 @@ namespace SubSonic.Tests.Linq.TestBases
         public IDataProvider Provider
         {
             get { return _provider; }
+        }
+
+        public DbQueryProvider QueryProvider
+        {
+            get { return _queryProvider; }
         }
 
         public Select Select

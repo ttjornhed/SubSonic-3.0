@@ -2,6 +2,8 @@
 using SubSonic.Tests.Linq;
 using SubSonic.Tests.Linq.TestBases;
 using Xunit;
+using System.Linq;
+using SubSonic.Linq.Structure;
 
 namespace SubSonic.Tests.LINQ
 {
@@ -75,6 +77,28 @@ namespace SubSonic.Tests.LINQ
             setup.DropTestTables();
             setup.CreateTestTable();
             setup.LoadTestData();
+        }
+    }
+
+    /// <summary>
+    /// Tests the parameterization of queries.
+    /// Unlike the other data providers, we should turn all values into bind variables, instead of just strings.
+    /// This is due to the way Oracle does SQL parsing and execution plan caching, and the way it impacts scalability.
+    /// </summary>
+    public class OracleQueryParameterizationTests
+    {
+        [Fact]
+        public void CheckParameterization()
+        {
+            var _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
+            var expr = _db.Categories.Where(x => x.CategoryID == 123 || x.CategoryName == "abc").Select(x => x.CategoryID).Expression;
+            var plan = _db.QueryProvider.GetQueryPlan(expr);
+
+            // the literals should be in the plan as named values
+            Assert.Contains("CategoryName = :", plan);
+            Assert.Contains("CategoryID = :", plan);
+            Assert.Contains("(Object)\"abc\"", plan);
+            Assert.Contains("(Object)123", plan);
         }
     }
 }

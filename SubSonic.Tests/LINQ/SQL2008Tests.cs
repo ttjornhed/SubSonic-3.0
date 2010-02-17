@@ -12,6 +12,7 @@
 //   rights and limitations under the License.
 // 
 //using NUnit.Framework;
+using System.Linq;
 using SubSonic.DataProviders;
 using SubSonic.Tests.Linq.TestBases;
 using Xunit;
@@ -59,6 +60,26 @@ namespace SubSonic.Tests.Linq
         public Sql2008DateTests()
         {
             _db = new TestDB(TestConfiguration.MsSql2008TestConnectionString, DbClientTypeName.MsSql);
+        }
+    }
+
+    /// <summary>
+    /// Tests the parameterization of queries.
+    /// Only strings are turned into parameters, numeric values are left as literals in the sql.
+    /// </summary>
+    public class OracleQueryParameterizationTests
+    {
+        [Fact]
+        public void CheckParameterization()
+        {
+            var _db = new TestDB(TestConfiguration.MsSql2008TestConnectionString, DbClientTypeName.MsSql);
+            var expr = _db.Categories.Where(x => x.CategoryID == 123 || x.CategoryName == "abc").Select(x => x.CategoryID).Expression;
+            var plan = _db.QueryProvider.GetQueryPlan(expr);
+
+            Assert.Contains("[CategoryID] = 123", plan);
+            Assert.Contains("[CategoryName] = @", plan);
+            Assert.Contains("(Object)\"abc\"", plan);
+            Assert.DoesNotContain("(Object)123", plan);
         }
     }
 }
