@@ -81,5 +81,21 @@ namespace SubSonic.Tests.Linq
             Assert.Contains("(Object)\"abc\"", plan);
             Assert.DoesNotContain("(Object)123", plan);
         }
+
+        [Fact]
+        public void TakeNumberIsNotParameterizedWhenUsingTake()
+        {
+            var _db = new TestDB(TestConfiguration.MsSql2008TestConnectionString, DbClientTypeName.MsSql);
+            var expr = _db.Categories.Where(x => x.CategoryName == "xyz").Select(x => x.CategoryID).Take(111).Expression;
+            var plan = _db.QueryProvider.GetQueryPlan(expr);
+
+            // 999 should habe been turned into a parameter
+            Assert.Contains("[CategoryName] = @", plan);
+            Assert.Contains("(Object)\"xyz\"", plan);
+
+            // the 1 for Take() should have been left as a literal
+            Assert.Contains("TOP (111)", plan);
+            Assert.DoesNotContain("(Object)111", plan);
+        }
     }
 }

@@ -100,5 +100,20 @@ namespace SubSonic.Tests.LINQ
             Assert.Contains("(Object)\"abc\"", plan);
             Assert.Contains("(Object)123", plan);
         }
+
+        [Fact]
+        public void TakeNumberIsNotParameterizedWhenUsingTake()
+        {
+            var _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
+            var expr = _db.Categories.Where(x => x.CategoryID == 999).Select(x => x.CategoryID).Skip(100).Take(1).Expression;
+            var plan = _db.QueryProvider.GetQueryPlan(expr);
+
+            // 999 should habe been turned into a parameter
+            Assert.Contains("CategoryID = :", plan);
+            Assert.Contains("(Object)999", plan);
+
+            // the 1 for Take() should have been left as a literal
+            Assert.Contains("rn >= 100 AND rn <= 101", plan);
+        }
     }
 }

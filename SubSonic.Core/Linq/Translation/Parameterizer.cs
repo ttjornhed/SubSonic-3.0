@@ -109,6 +109,8 @@ namespace SubSonic.Linq.Translation
     /// </summary>
     public class OracleParameterizer : Parameterizer
     {
+        protected bool doParameterization = true;
+
         public static Expression Parameterize(Expression expression)
         {
             return new OracleParameterizer().Visit(expression);
@@ -117,7 +119,7 @@ namespace SubSonic.Linq.Translation
         // this method is a copy/paste of the one in Paramterizer, but without the check for "IsNumeric".
         protected override Expression VisitConstant(ConstantExpression c)
         {
-            if (c.Value != null)
+            if (c.Value != null && doParameterization)
             {
                 NamedValueExpression nv;
                 if (!this.map.TryGetValue(c.Value, out nv))
@@ -129,6 +131,35 @@ namespace SubSonic.Linq.Translation
                 return nv;
             }
             return c;
+        }
+
+        // this method is a copy/paste from the one in DbExpressionVisitor
+        // the difference is that we don't want to parameterize the Skip and Take expressions,
+        // because the OracleParameterized also parameterizes numbers, and this prevents it
+        // from parameterizing the Skip and Take numbers.
+        protected override Expression VisitSelect(SelectExpression select)
+        {
+            Expression from = this.VisitSource(select.From);
+            Expression where = this.Visit(select.Where);
+            ReadOnlyCollection<OrderExpression> orderBy = this.VisitOrderBy(select.OrderBy);
+            ReadOnlyCollection<Expression> groupBy = this.VisitExpressionList(select.GroupBy);
+            doParameterization = false; // don't turn the skip and take numbers into parameters!
+            Expression skip = this.Visit(select.Skip);
+            Expression take = this.Visit(select.Take);
+            doParameterization = true; // resume parameterizing.
+            ReadOnlyCollection<ColumnDeclaration> columns = this.VisitColumnDeclarations(select.Columns);
+            if (from != select.From
+                || where != select.Where
+                || orderBy != select.OrderBy
+                || groupBy != select.GroupBy
+                || take != select.Take
+                || skip != select.Skip
+                || columns != select.Columns
+                )
+            {
+                return new SelectExpression(select.Alias, columns, from, where, orderBy, groupBy, select.IsDistinct, skip, take);
+            }
+            return select;
         }
     }
 
