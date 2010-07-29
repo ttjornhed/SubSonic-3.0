@@ -265,15 +265,8 @@ USING INDEX
 
 -- End of DDL Script for Table NWIND.ORDER_DETAILS
 
--- Foreign Key
-ALTER TABLE order_details
-ADD CONSTRAINT fk1_orders_details FOREIGN KEY (productid)
-REFERENCES products (productid)
-/
-ALTER TABLE order_details
-ADD CONSTRAINT fk_orders_details FOREIGN KEY (orderid)
-REFERENCES orders (orderid) ON DELETE CASCADE
-/
+
+
 -- End of DDL script for Foreign Key(s)
 -- Start of DDL Script for Table NWIND.ORDERS
 -- Generated 19/01/07 19:41:31 from NWIND@INTELLIZ
@@ -327,6 +320,10 @@ USING INDEX
   )
 /
 
+ALTER TABLE order_details
+ADD CONSTRAINT fk_orders_details FOREIGN KEY (orderid)
+REFERENCES orders (orderid) ON DELETE CASCADE
+/
 
 -- Triggers for ORDERS
 
@@ -363,10 +360,7 @@ ALTER TABLE orders
 ADD CONSTRAINT fk1_orders FOREIGN KEY (employeeid)
 REFERENCES employees (employeeid)
 /
-ALTER TABLE orders
-ADD CONSTRAINT fk3_orders FOREIGN KEY (shipvia)
-REFERENCES shippers (shipperid)
-/
+
 ALTER TABLE orders
 ADD CONSTRAINT fk_orders FOREIGN KEY (customerid)
 REFERENCES customers (customerid)
@@ -451,13 +445,14 @@ END;
 -- End of DDL Script for Table NWIND.PRODUCTS
 
 -- Foreign Key
-ALTER TABLE products
-ADD CONSTRAINT fk1_products FOREIGN KEY (supplierid)
-REFERENCES suppliers (supplierid)
-/
+
 ALTER TABLE products
 ADD CONSTRAINT fk_products FOREIGN KEY (categoryid)
 REFERENCES categories (categoryid)
+/
+ALTER TABLE order_details
+ADD CONSTRAINT fk1_orders_details FOREIGN KEY (productid)
+REFERENCES products (productid)
 /
 -- End of DDL script for Foreign Key(s)
 -- Start of DDL Script for Table NWIND.SHIPPERS
@@ -498,7 +493,10 @@ USING INDEX
   )
 /
 
-
+ALTER TABLE orders
+ADD CONSTRAINT fk3_orders FOREIGN KEY (shipvia)
+REFERENCES shippers (shipperid)
+/
 -- End of DDL Script for Table NWIND.SHIPPERS
 
 -- Start of DDL Script for Table NWIND.SUPPLIERS
@@ -560,6 +558,10 @@ USING INDEX
   )
 /
 
+ALTER TABLE products
+ADD CONSTRAINT fk1_products FOREIGN KEY (supplierid)
+REFERENCES suppliers (supplierid)
+/
 
 -- Triggers for SUPPLIERS
 

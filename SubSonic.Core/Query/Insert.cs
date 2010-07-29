@@ -41,6 +41,7 @@ namespace SubSonic.Query
         private readonly IDataProvider _provider;
         public List<string> ColumnList = new List<string>();
         public List<InsertSetting> Inserts = new List<InsertSetting>();
+        internal SqlQuery SelectValues;
         internal ITable Table;
         private string tableName = "";
 

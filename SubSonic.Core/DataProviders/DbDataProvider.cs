@@ -369,8 +369,7 @@ namespace SubSonic.DataProviders
         public abstract string QualifyTableName(ITable tbl);
         public abstract string QualifyColumnName(IColumn column);
        
-        // TODO: Make that abstract too? Or at least virtual
-        public string QualifySPName(IStoredProcedure sp)
+        public virtual string QualifySPName(IStoredProcedure sp)
         {
             const string qualifiedFormat = "[{0}].[{1}]";
             return String.Format(qualifiedFormat, sp.SchemaName, sp.Name);
