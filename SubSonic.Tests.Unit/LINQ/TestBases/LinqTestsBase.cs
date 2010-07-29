@@ -31,6 +31,7 @@ namespace SubSonic.Tests.Unit.Linq.TestBases
 		string ReplaceExtraWhitespaceAndCarriageReturn(string input)
 		{
 			input = Regex.Replace(input, "\\s+", " ");
+            input = Regex.Replace(input, "\\n+", "");
 			return Regex.Replace(input, "\r", "");
 		}
 	}
