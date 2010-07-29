@@ -113,6 +113,43 @@ USING INDEX
 
 -- End of DDL Script for Table NWIND.CUSTOMERS
 
+
+CREATE TABLE Region (
+  RegionID number(10,0) NOT NULL,
+  RegionDescription varchar2(50) NOT NULL,
+  PRIMARY KEY  (RegionID)
+)
+/
+
+
+CREATE TABLE Territories (
+  TerritoryID varchar2(20) NOT NULL,
+  TerritoryDescription char(50) NOT NULL,
+  RegionID number(10,0) NOT NULL,
+  PRIMARY KEY  (TerritoryID)
+)
+/
+
+ALTER TABLE Territories
+ADD CONSTRAINT FK_Territories_Region FOREIGN KEY (RegionID)
+REFERENCES region (regionid) ON DELETE CASCADE
+/
+
+CREATE TABLE EmployeeTerritories (
+  EmployeeID number(10,0) NOT NULL,
+  TerritoryID varchar2(20) NOT NULL,
+  PRIMARY KEY  (EmployeeID, TerritoryID)
+)
+/
+
+
+
+Alter table EmployeeTerritories
+add constraint FK_EmployeeTerritories_T FOREIGN KEY (TerritoryID) 
+REFERENCES territories (TerritoryID) ON DELETE cascade
+/
+
+
 -- Start of DDL Script for Table NWIND.EMPLOYEES
 -- Generated 19/01/07 19:41:30 from NWIND@INTELLIZ
 
@@ -133,7 +170,8 @@ CREATE TABLE employees
     extension                      VARCHAR2(4),
     photo                          BLOB,
     notes                          CLOB,
-    reportsto                      NUMBER(10,0))
+    reportsto                      NUMBER(10,0),
+    PhotoPath			   VARCHAR2(255))
   PCTFREE     10
   INITRANS    1
   MAXTRANS    255
@@ -217,6 +255,10 @@ BEGIN
 END;
 /
 
+Alter table EmployeeTerritories
+add constraint FK_EmployeeTerritories_Emp FOREIGN KEY (EmployeeID) 
+REFERENCES employees (EmployeeID) ON DELETE cascade
+/
 
 -- End of DDL Script for Table NWIND.EMPLOYEES
 
@@ -994,7 +1036,7 @@ SELECT Orders.ShippedDate, Orders.OrderID, Order_Subtotals.Subtotal
 
 CREATE SEQUENCE seq_employees
   INCREMENT BY 1
-  START WITH 11
+  START WITH 1
   MINVALUE 1
   MAXVALUE 999999999999999999999999999
   NOCYCLE
@@ -1010,7 +1052,7 @@ CREATE SEQUENCE seq_employees
 
 CREATE SEQUENCE seq_orders
   INCREMENT BY 1
-  START WITH 11078
+  START WITH 10248
   MINVALUE 1
   MAXVALUE 999999999999999999999999999
   NOCYCLE
@@ -1026,7 +1068,7 @@ CREATE SEQUENCE seq_orders
 
 CREATE SEQUENCE seq_products
   INCREMENT BY 1
-  START WITH 78
+  START WITH 1
   MINVALUE 1
   MAXVALUE 999999999999999999999999999
   NOCYCLE
@@ -1042,7 +1084,7 @@ CREATE SEQUENCE seq_products
 
 CREATE SEQUENCE seq_suppliers
   INCREMENT BY 1
-  START WITH 30
+  START WITH 1
   MINVALUE 1
   MAXVALUE 999999999999999999999999999
   NOCYCLE

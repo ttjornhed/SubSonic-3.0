@@ -3,7 +3,9 @@ drop SEQUENCE seq_orders;
 drop SEQUENCE seq_products;
 drop SEQUENCE seq_suppliers;
   
-
+drop table EmployeeTerritories;
+drop table territories;
+drop table region;
 drop table order_details;
 drop table orders;
 drop table shippers;
