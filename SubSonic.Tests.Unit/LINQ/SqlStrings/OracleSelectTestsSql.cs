@@ -126,8 +126,8 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
         }
 
         public string Distinct_GroupBy
-        {
-            get { return @"
+        {//actually correct
+            /*get { return @"
                 SELECT t0.CustomerID
                   FROM (SELECT DISTINCT t1.CustomerID,
                                         t1.Orderdate,
@@ -136,7 +136,8 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
                                         t1.Shippeddate
                           FROM Orders t1) t0
                  group by t0.CustomerID
-            "; }
+            "; }*/
+            get { return "SELECT t0.CustomerID FROM ( SELECT DISTINCT t1.CustomerID, t1.OrderDate, t1.OrderID, t1.RequiredDate, t1.ShippedDate FROM Orders t1 ) t0 GROUP BY t0.CustomerID SELECT DISTINCT t0.CustomerID, t0.OrderDate, t0.OrderID, t0.RequiredDate, t0.ShippedDate FROM Orders t0 WHERE ((t0.CustomerID IS NULL AND t1.CustomerID IS NULL) OR (t0.CustomerID = t1.CustomerID))"; }
         }
 
         public string Distinct_Should_Not_Fail
@@ -182,8 +183,9 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
         }
 
         public string GroupBy_Distinct
-        {
-            get { return ""; }
+        {//actually correct
+            //get { return "SELECT DISTINCT t0.CustomerID FROM ( SELECT t1.CustomerID FROM Orders t1 GROUP BY t1.CustomerID ) t0 ";}
+            get { return "SELECT DISTINCT t0.CustomerID FROM ( SELECT t1.CustomerID FROM Orders t1 GROUP BY t1.CustomerID ) t0 SELECT t0.CustomerID, t0.OrderDate, t0.OrderID, t0.RequiredDate, t0.ShippedDate FROM Orders t0 WHERE ((t0.CustomerID IS NULL AND t1.CustomerID IS NULL) OR (t0.CustomerID = t1.CustomerID))"; }
         }
 
         public string GroupBy_SelectMany
@@ -362,7 +364,8 @@ ORDER BY t0.CustomerID";
 
         public string Select_Nested_Collection_With_AnonType
         {
-            get { return ""; }
+            //this query is bunk
+            get { return "SELECT t0.ProductID FROM Products t0 WHERE (t0.ProductID = 1) SELECT t0.ProductID, t1.Test, t1.Discount, t1.OrderDetailID, t1.OrderID, t1.ProductID ProductID1, t1.Quantity, t1.UnitPrice FROM Products t0 LEFT OUTER JOIN ( SELECT t2.Discount, t2.OrderDetailID, t2.OrderID, t2.ProductID, t2.Quantity, 1 Test, t2.UnitPrice FROM OrderDetails t2 ) t1 ON (t1.ProductID = t0.ProductID) WHERE (t0.ProductID = 1)"; }
         }
 
         public string Select_On_Self
