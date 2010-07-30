@@ -262,10 +262,10 @@ REFERENCES employees (EmployeeID) ON DELETE cascade
 
 -- End of DDL Script for Table NWIND.EMPLOYEES
 
--- Start of DDL Script for Table NWIND.ORDER_DETAILS
+-- Start of DDL Script for Table NWIND.OrderDetails
 -- Generated 19/01/07 19:41:31 from NWIND@INTELLIZ
 
-CREATE TABLE order_details
+CREATE TABLE orderdetails
     (orderid                        NUMBER(10,0) NOT NULL,
     productid                      NUMBER(10,0) NOT NULL,
     unitprice                      NUMBER(10,2),
@@ -286,12 +286,12 @@ CREATE TABLE order_details
 
 
 
--- Constraints for ORDER_DETAILS
+-- Constraints for OrderDetails
 
 
 
-ALTER TABLE order_details
-ADD CONSTRAINT pk_order_details PRIMARY KEY (orderid, productid)
+ALTER TABLE orderdetails
+ADD CONSTRAINT pk_orderdetails PRIMARY KEY (orderid, productid)
 USING INDEX
   PCTFREE     10
   INITRANS    2
@@ -305,7 +305,7 @@ USING INDEX
 /
 
 
--- End of DDL Script for Table NWIND.ORDER_DETAILS
+-- End of DDL Script for Table NWIND.OrderDetails
 
 
 
@@ -362,7 +362,7 @@ USING INDEX
   )
 /
 
-ALTER TABLE order_details
+ALTER TABLE orderdetails
 ADD CONSTRAINT fk_orders_details FOREIGN KEY (orderid)
 REFERENCES orders (orderid) ON DELETE CASCADE
 /
@@ -492,7 +492,7 @@ ALTER TABLE products
 ADD CONSTRAINT fk_products FOREIGN KEY (categoryid)
 REFERENCES categories (categoryid)
 /
-ALTER TABLE order_details
+ALTER TABLE orderdetails
 ADD CONSTRAINT fk1_orders_details FOREIGN KEY (productid)
 REFERENCES products (productid)
 /
@@ -748,12 +748,12 @@ SELECT Orders.ShipName, Orders.ShipAddress, Orders.ShipCity,
           Customers.PostalCode, Customers.Country,
           (FirstName || ' ' || LastName) AS Salesperson, Orders.OrderID,
           Orders.OrderDate, Orders.RequiredDate, Orders.ShippedDate,
-          Shippers.CompanyName AS ShipperName, Order_Details.ProductID,
-          Products.ProductName, Order_Details.UnitPrice,
-          Order_Details.Quantity, Order_Details.Discount,
-          (  (  Order_Details.UnitPrice
-              * Order_Details.Quantity
-              * (1 - Order_Details.Discount)
+          Shippers.CompanyName AS ShipperName, OrderDetails.ProductID,
+          Products.ProductName, OrderDetails.UnitPrice,
+          OrderDetails.Quantity, OrderDetails.Discount,
+          (  (  OrderDetails.UnitPrice
+              * OrderDetails.Quantity
+              * (1 - OrderDetails.Discount)
               / 100
              )
            * 100
@@ -769,18 +769,18 @@ SELECT Orders.ShipName, Orders.ShipAddress, Orders.ShipCity,
           ON Customers.CustomerID = Orders.CustomerID)
           ON Employees.EmployeeID = Orders.EmployeeID)
           INNER JOIN
-          Order_Details ON Orders.OrderID = Order_Details.OrderID)
-          ON Products.ProductID = Order_Details.ProductID)
+          OrderDetails ON Orders.OrderID = OrderDetails.OrderID)
+          ON Products.ProductID = OrderDetails.ProductID)
           ON Shippers.ShipperID = Orders.ShipVia
 /
 
 
 -- End of DDL Script for View NWIND.INVOICES
 
--- Start of DDL Script for View NWIND.ORDER_DETAILS_EXTENDED
+-- Start of DDL Script for View NWIND.OrderDetails_EXTENDED
 -- Generated 19/01/07 19:41:42 from NWIND@INTELLIZ
 
-CREATE OR REPLACE VIEW order_details_extended (
+CREATE OR REPLACE VIEW OrderDetails_extended (
    orderid,
    productid,
    productname,
@@ -789,17 +789,17 @@ CREATE OR REPLACE VIEW order_details_extended (
    discount,
    extendedprice )
 AS
-SELECT Order_Details.OrderID, Order_Details.ProductID,
-          Products.ProductName, Order_Details.UnitPrice,
-          Order_Details.Quantity, Order_Details.Discount,
-          ((Order_Details.UnitPrice * Quantity * (1 - Discount) / 100) * 100
+SELECT OrderDetails.OrderID, OrderDetails.ProductID,
+          Products.ProductName, OrderDetails.UnitPrice,
+          OrderDetails.Quantity, OrderDetails.Discount,
+          ((OrderDetails.UnitPrice * Quantity * (1 - Discount) / 100) * 100
           ) AS ExtendedPrice
-     FROM Products INNER JOIN Order_Details
-          ON Products.ProductID = Order_Details.ProductID
+     FROM Products INNER JOIN OrderDetails
+          ON Products.ProductID = OrderDetails.ProductID
 /
 
 
--- End of DDL Script for View NWIND.ORDER_DETAILS_EXTENDED
+-- End of DDL Script for View NWIND.OrderDetails_EXTENDED
 
 -- Start of DDL Script for View NWIND.ORDER_SUBTOTALS
 -- Generated 19/01/07 19:41:42 from NWIND@INTELLIZ
@@ -808,13 +808,13 @@ CREATE OR REPLACE VIEW order_subtotals (
    orderid,
    subtotal )
 AS
-SELECT   Order_Details.OrderID,
-            SUM (  (Order_Details.UnitPrice * Quantity * (1 - Discount) / 100
+SELECT   OrderDetails.OrderID,
+            SUM (  (OrderDetails.UnitPrice * Quantity * (1 - Discount) / 100
                    )
                  * 100
                 ) AS Subtotal
-       FROM Order_Details
-   GROUP BY Order_Details.OrderID
+       FROM OrderDetails
+   GROUP BY OrderDetails.OrderID
 /
 
 
@@ -868,16 +868,16 @@ CREATE OR REPLACE VIEW product_sales_for_1997 (
    productsales )
 AS
 SELECT   Categories.CategoryName, Products.ProductName,
-            SUM (  (Order_Details.UnitPrice * Quantity * (1 - Discount) / 100
+            SUM (  (OrderDetails.UnitPrice * Quantity * (1 - Discount) / 100
                    )
                  * 100
                 ) AS ProductSales
        FROM (Categories INNER JOIN Products
             ON Categories.CategoryID = Products.CategoryID)
             INNER JOIN
-            (Orders INNER JOIN Order_Details
-            ON Orders.OrderID = Order_Details.OrderID)
-            ON Products.ProductID = Order_Details.ProductID
+            (Orders INNER JOIN OrderDetails
+            ON Orders.OrderID = OrderDetails.OrderID)
+            ON Products.ProductID = OrderDetails.ProductID
       WHERE ((TO_CHAR (Orders.ShippedDate, 'rrrrmmdd') BETWEEN '19970101'
                                                            AND '19971231'
              )
@@ -955,14 +955,14 @@ CREATE OR REPLACE VIEW sales_by_category (
 AS
 SELECT   Categories.CategoryID, Categories.CategoryName,
             Products.ProductName,
-            SUM (Order_Details_Extended.ExtendedPrice) AS ProductSales
+            SUM (OrderDetails_Extended.ExtendedPrice) AS ProductSales
        FROM Categories
             INNER JOIN
             (Products
             INNER JOIN
-            (Orders INNER JOIN Order_Details_Extended
-            ON Orders.OrderID = Order_Details_Extended.OrderID)
-            ON Products.ProductID = Order_Details_Extended.ProductID)
+            (Orders INNER JOIN OrderDetails_Extended
+            ON Orders.OrderID = OrderDetails_Extended.OrderID)
+            ON Products.ProductID = OrderDetails_Extended.ProductID)
             ON Categories.CategoryID = Products.CategoryID
       WHERE TO_CHAR (Orders.OrderDate, 'rrrrmmdd') BETWEEN '19970101'
                                                        AND '19971231'

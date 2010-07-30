@@ -33,7 +33,7 @@ namespace SubSonic.DataProviders.Oracle
 			if (m.Member.DeclaringType == typeof(string)) {
 				switch (m.Member.Name) {
 					case "Length":
-						sb.Append("CHAR_LENGTH(");
+						sb.Append("LENGTH(");
 						this.Visit(m.Expression);
 						sb.Append(")");
 						return m;

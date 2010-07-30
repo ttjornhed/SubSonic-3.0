@@ -17,11 +17,10 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
                        t0.CustomerID,
                        t0.Region
                   FROM Customers t0
-                 WHERE NOT EXISTS
-                 (SELECT NULL
+                 WHERE NOT EXISTS( SELECT NULL
                           FROM Orders t1
                          WHERE ((t1.CustomerID = t0.CustomerID) AND
-                               NOT (t1.OrderDate > to_date('2008-05-01T00:00:00','YYYY-MM-DD""T""HH24:MI:SS'))))
+                               NOT (t1.OrderDate > to_date('2008-05-01T00:00:00','YYYY-MM-DD""T""HH24:MI:SS'))) )
             ";
             }
         }
@@ -46,13 +45,13 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
             get { return @"
                 SELECT t0.Address,
                        t0.City,
-                       t0.Companyname,
-                       t0.Contactname,
+                       t0.CompanyName,
+                       t0.ContactName,
                        t0.Country,
-                       t0.Customerid,
+                       t0.CustomerID,
                        t0.Region
                   FROM Customers t0
-                 WHERE ((t0.Customerid = 'ABCDE') or (t0.Customerid = 'TEST1'))
+                 WHERE ((t0.CustomerID = 'ABCDE') OR (t0.CustomerID = 'TEST1'))
             ";}
         }
 
@@ -61,13 +60,13 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
             get { return @"
                 SELECT t0.Address,
                        t0.City,
-                       t0.Companyname,
-                       t0.Contactname,
+                       t0.CompanyName,
+                       t0.ContactName,
                        t0.Country,
-                       t0.Customerid,
+                       t0.CustomerID,
                        t0.Region
                   FROM Customers t0
-                  WHERE (t0.Contactname like '%' || 'har' || '%')
+                  WHERE (t0.ContactName LIKE '%' || 'har' || '%')
             ";}
         }
 
@@ -76,13 +75,13 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
             get { return @"
                 SELECT t0.Address,
                        t0.City,
-                       t0.Companyname,
-                       t0.Contactname,
+                       t0.CompanyName,
+                       t0.ContactName,
                        t0.Country,
-                       t0.Customerid,
+                       t0.CustomerID,
                        t0.Region
                   FROM Customers t0
-                 WHERE t0.Customerid in ('TEST2', 'TEST1')
+                 WHERE t0.CustomerID IN ('TEST2', 'TEST1')
             ";}
         }
 
@@ -91,13 +90,13 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
             get { return @"
                 SELECT t0.Address,
                        t0.City,
-                       t0.Companyname,
-                       t0.Contactname,
+                       t0.CompanyName,
+                       t0.ContactName,
                        t0.Country,
-                       t0.Customerid,
+                       t0.CustomerID,
                        t0.Region
                   FROM Customers t0
-                 WHERE t0.Customerid in ('ABCDE', 'TEST1')
+                 WHERE t0.CustomerID IN ('ABCDE', 'TEST1')
             ";}
         }
 
@@ -106,13 +105,13 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
             get { return @"
                 SELECT t0.Address,
                        t0.City,
-                       t0.Companyname,
-                       t0.Contactname,
+                       t0.CompanyName,
+                       t0.ContactName,
                        t0.Country,
-                       t0.Customerid,
+                       t0.CustomerID,
                        t0.Region
                   FROM Customers t0
-                 WHERE t0.Customerid in (SELECT t1.customerid FROM orders t1)
+                 WHERE t0.CustomerID IN ( SELECT t1.CustomerID FROM orders t1 )
             "; }
         }
 
@@ -123,20 +122,20 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
 
         public string Count_No_Args
         {
-            get { return "SELECT t0.Orderid FROM orders t0"; }
+            get { return "SELECT t0.OrderID FROM Orders t0"; }
         }
 
         public string Distinct_GroupBy
         {
             get { return @"
-                SELECT t0.Customerid
-                  FROM (SELECT DISTINCT t1.Customerid,
+                SELECT t0.CustomerID
+                  FROM (SELECT DISTINCT t1.CustomerID,
                                         t1.Orderdate,
                                         t1.Orderid,
                                         t1.Requireddate,
                                         t1.Shippeddate
                           FROM Orders t1) t0
-                 group by t0.Customerid
+                 group by t0.CustomerID
             "; }
         }
 
@@ -145,10 +144,10 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
             get { return @"
                 SELECT DISTINCT t0.Address,
                                 t0.City,
-                                t0.Companyname,
-                                t0.Contactname,
+                                t0.CompanyName,
+                                t0.ContactName,
                                 t0.Country,
-                                t0.Customerid,
+                                t0.CustomerID,
                                 t0.Region
                 FROM Customers t0
             "; }
@@ -161,13 +160,13 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
 
         public string Distinct_Should_Return_69_For_Scalar_CustomerCity_Ordered
         {
-            get { return "SELECT DISTINCT t0.City FROM Customers t0 order by t0.City"; }
+            get { return "SELECT DISTINCT t0.City FROM Customers t0 ORDER BY t0.City"; }
         }
 
         public string GroupBy_Basic
         {
             get { return @"SELECT t0.City 
-                            FROM Customers AS t0
+                            FROM Customers t0
                             GROUP BY t0.City 
                           SELECT t0.Address, 
                                  t0.City, 
@@ -176,7 +175,7 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
                                  t0.Country, 
                                  t0.CustomerID, 
                                  t0.Region
-                            FROM Customers AS t0
+                            FROM Customers t0
                             WHERE ((t0.City IS NULL AND t1.City IS NULL) 
                                OR (t0.City = t1.City))";
             }
@@ -189,12 +188,12 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
 
         public string GroupBy_SelectMany
         {
-            get { return ""; }
+            get { return "SELECT t0.Address, t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Region FROM ( SELECT t1.City FROM Customers t1 GROUP BY t1.City ) t2 INNER JOIN Customers t0 ON ((t0.City IS NULL AND t2.City IS NULL) OR (t0.City = t2.City))"; }
         }
 
         public string GroupBy_Sum
         {
-            get { return ""; }
+            get { return "SELECT SUM(t0.OrderID) agg1, MIN(t0.OrderID) agg2, MAX(t0.OrderID) agg3, AVG(t0.OrderID) agg4 FROM Orders t0 GROUP BY t0.CustomerID"; }
         }
 
         public string GroupBy_Sum_With_Element_Selector_Sum_Max
@@ -204,7 +203,7 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
 
         public string GroupBy_Sum_With_Result_Selector
         {
-            get { return ""; }
+            get { return "SELECT SUM(t0.OrderID) c0, MIN(t0.OrderID) c1, MAX(t0.OrderID) c2, AVG(t0.OrderID) c3 FROM Orders t0 GROUP BY t0.CustomerID"; }
         }
 
         public string GroupBy_With_Anon_Element
@@ -214,7 +213,7 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
 
         public string GroupBy_With_Element_Selector
         {
-            get { return ""; }
+            get { return "SELECT SUM(t0.OrderID) c0, MIN(t0.OrderID) c1, MAX(t0.OrderID) c2, AVG(t0.OrderID) c3 FROM Orders t0 GROUP BY t0.CustomerID"; }
         }
 
         public string GroupBy_With_Element_Selector_Sum
@@ -229,32 +228,32 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
 
         public string Join_To_Categories
         {
-            get { return ""; }
+            get { return "SELECT t0.CategoryID, t0.Discontinued, t0.ProductID, t0.ProductName, t0.Sku, t0.UnitPrice FROM Categories t1 INNER JOIN Products t0 ON (t1.CategoryID = t0.CategoryID)"; }
         }
 
         public string OrderBy_CustomerID
         {
-            get { return ""; }
+            get { return "SELECT t0.Address, t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Region FROM Customers t0 ORDER BY t0.CustomerID"; }
         }
 
         public string OrderBy_CustomerID_Descending
         {
-            get { return ""; }
+            get { return "SELECT t0.Address, t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Region FROM Customers t0 ORDER BY t0.CustomerID DESC"; }
         }
 
         public string OrderBy_CustomerID_Descending_ThenBy_City
         {
-            get { return ""; }
+            get { return "SELECT t0.City FROM Customers t0 ORDER BY t0.CustomerID DESC, t0.City"; }
         }
 
         public string OrderBy_CustomerID_Descending_ThenByDescending_City
         {
-            get { return ""; }
+            get { return "SELECT t0.City FROM Customers t0 ORDER BY t0.CustomerID DESC, t0.City DESC"; }
         }
 
         public string OrderBy_CustomerID_OrderBy_Company_City
         {
-            get { return ""; }
+            get { return "SELECT t0.City FROM Customers t0 ORDER BY t0.City, t0.CompanyName"; }
         }
 
         public string OrderBy_CustomerID_ThenBy_City
@@ -277,7 +276,7 @@ ORDER BY t0.CustomerID";
 
         public string OrderBy_Join
         {
-            get { return ""; }
+            get { return "SELECT t0.CustomerID, t1.OrderID FROM Customers t0 INNER JOIN Orders t1 ON (t0.CustomerID = t1.CustomerID) ORDER BY t0.CustomerID, t1.OrderID"; }
         }
 
         public string OrderBy_SelectMany
@@ -287,22 +286,22 @@ ORDER BY t0.CustomerID";
 
         public string Paging_With_Skip_Take
         {
-            get { return ""; }
+            get { return "select * from ( select t1.*, ROWNUM rn from (SELECT t0.CategoryID, t0.Discontinued, t0.ProductID, t0.ProductName, t0.Sku, t0.UnitPrice FROM Products t0 ORDER BY t0.ProductID ) t1 ) where rn >= 10 AND rn <= 30"; }
         }
 
         public string Paging_With_Take
         {
-            get { return ""; }
+            get { return "select * from ( select t1.*, ROWNUM rn from (SELECT t0.CategoryID, t0.Discontinued, t0.ProductID, t0.ProductName, t0.Sku, t0.UnitPrice FROM Products t0 ) t1 ) where rn >= 0 AND rn <= 20"; }
         }
 
         public string Select_0_When_Set_False
         {
-            get { return ""; }
+            get { return "SELECT t0.CategoryID, t0.Discontinued, t0.ProductID, t0.ProductName, t0.Sku, t0.UnitPrice FROM Products t0 WHERE 0 <> 0"; }
         }
 
         public string Select_100_When_Set_True
         {
-            get { return ""; }
+            get { return "SELECT t0.CategoryID, t0.Discontinued, t0.ProductID, t0.ProductName, t0.Sku, t0.UnitPrice FROM Products t0 WHERE 1 <> 0"; }
         }
 
         public string Select_Anon_Constant_Int
@@ -312,12 +311,12 @@ ORDER BY t0.CustomerID";
 
         public string Select_Anon_Constant_NullString
         {
-            get { return ""; }
+            get { return "SELECT NULL FROM Products t0"; }
         }
 
         public string Select_Anon_Empty
         {
-            get { return ""; }
+            get { return "SELECT NULL FROM Products t0"; }
         }
 
         public string Select_Anon_Literal
@@ -327,18 +326,18 @@ ORDER BY t0.CustomerID";
 
         public string Select_Anon_Nested
         {
-            get { return ""; }
+            get { return "SELECT t0.ProductName, t0.UnitPrice FROM Products t0"; }
         }
 
         public string Select_Anon_One
         {
             get { return @"SELECT t0.ProductName 
-                             FROM Products"; }
+                             FROM Products t0"; }
         }
 
         public string Select_Anon_One_And_Object
         {
-            get { return ""; }
+            get { return "SELECT t0.ProductName, t0.CategoryID, t0.Discontinued, t0.ProductID, t0.Sku, t0.UnitPrice FROM Products t0"; }
         }
 
         public string Select_Anon_Three
@@ -348,17 +347,17 @@ ORDER BY t0.CustomerID";
 
         public string Select_Anon_Two
         {
-            get { return ""; }
+            get { return "SELECT t0.ProductName, t0.UnitPrice FROM Products t0"; }
         }
 
         public string Select_Anon_With_Local
         {
-            get { return ""; }
+            get { return "SELECT NULL FROM Products t0"; }
         }
 
         public string Select_Nested_Collection
         {
-            get { return ""; }
+            get { return "SELECT ( SELECT COUNT(*) FROM OrderDetails t0 WHERE (t0.ProductID = t1.ProductID) ) c0 FROM Products t1 WHERE (t1.ProductID = 1)"; }
         }
 
         public string Select_Nested_Collection_With_AnonType
@@ -379,7 +378,7 @@ ORDER BY t0.CustomerID";
 
         public string SelectMany_Customer_Orders
         {
-            get { return ""; }
+            get { return "SELECT t0.ContactName, t1.OrderID FROM Customers t0 CROSS JOIN Orders t1 WHERE (t0.CustomerID = t1.CustomerID)"; }
         }
 
         public string Where_Resolves_String_EndsWith_Literal
@@ -394,12 +393,12 @@ ORDER BY t0.CustomerID";
 
         public string Where_Resolves_String_IsNullOrEmpty
         {
-            get { return ""; }
+            get { return "SELECT t0.Address, t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Region FROM Customers t0 WHERE (t0.City IS NULL OR t0.City = '')"; }
         }
 
         public string Where_Resolves_String_Length
         {
-            get { return ""; }
+            get { return "SELECT t0.Address, t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Region FROM Customers t0 WHERE (LENGTH(t0.City) = 7)"; }
         }
 
         public string Where_Resolves_String_StartsWith_Literal
