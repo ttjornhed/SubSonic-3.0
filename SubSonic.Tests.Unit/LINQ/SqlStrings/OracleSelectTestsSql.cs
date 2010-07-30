@@ -111,7 +111,7 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
                        t0.CustomerID,
                        t0.Region
                   FROM Customers t0
-                 WHERE t0.CustomerID IN ( SELECT t1.CustomerID FROM orders t1 )
+                 WHERE t0.CustomerID IN ( SELECT t1.CustomerID FROM Orders t1 )
             "; }
         }
 
@@ -213,7 +213,7 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings {
 
         public string GroupBy_With_Element_Selector
         {
-            get { return "SELECT SUM(t0.OrderID) c0, MIN(t0.OrderID) c1, MAX(t0.OrderID) c2, AVG(t0.OrderID) c3 FROM Orders t0 GROUP BY t0.CustomerID"; }
+            get { return "SELECT t0.CustomerID FROM Orders t0 GROUP BY t0.CustomerID SELECT t0.OrderID FROM Orders t0 WHERE ((t0.CustomerID IS NULL AND t1.CustomerID IS NULL) OR (t0.CustomerID = t1.CustomerID))"; }
         }
 
         public string GroupBy_With_Element_Selector_Sum
