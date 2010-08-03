@@ -31,4 +31,31 @@ namespace SubSonic.Tests.Unit.Linq
 		}
 
 	}
+
+    public class OracleStringTests : StringTests
+    {
+        public OracleStringTests()
+        {
+            _stringTestsSql = new OracleStringTestsSql();
+            _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
+        }
+    }
+
+    public class OracleNumberTests : NumberTests
+    {
+        public OracleNumberTests()
+        {
+            _numberTestsSql = new OracleNumberTestsSql();
+            _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
+        }
+    }
+
+    public class OracleDateTests : DateTests
+    {
+        public OracleDateTests()
+        {
+            _dateTestsSql = new OracleDateTestsSql();
+            _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
+        }
+    }
 }

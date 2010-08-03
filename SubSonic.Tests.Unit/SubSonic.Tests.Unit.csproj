@@ -86,6 +86,9 @@
     <Compile Include="Linq\SqlStrings\INumberTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\ISelectTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\IStringTestsSql.cs" />
+    <Compile Include="Linq\SqlStrings\OracleDateTestsSql.cs" />
+    <Compile Include="Linq\SqlStrings\OracleNumberTestsSql.cs" />
+    <Compile Include="Linq\SqlStrings\OracleStringTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2005DateTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2005NumberTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2005SelectTestsSql.cs" />

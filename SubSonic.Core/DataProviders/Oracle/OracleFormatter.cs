@@ -41,49 +41,49 @@ namespace SubSonic.DataProviders.Oracle
 			} else if (m.Member.DeclaringType == typeof(DateTime) || m.Member.DeclaringType == typeof(DateTimeOffset)) {
 				switch (m.Member.Name) {
 					case "Day":
-						sb.Append("DAY(");
+						sb.Append("TO_CHAR(");
 						this.Visit(m.Expression);
-						sb.Append(")");
+						sb.Append(", 'DD')");
 						return m;
 					case "Month":
-						sb.Append("MONTH(");
+						sb.Append("TO_CHAR(");
 						this.Visit(m.Expression);
-						sb.Append(")");
+						sb.Append(", 'MM')");
 						return m;
 					case "Year":
-						sb.Append("YEAR(");
+						sb.Append("TO_CHAR(");
 						this.Visit(m.Expression);
-						sb.Append(")");
+						sb.Append(", 'YYYY')");
 						return m;
 					case "Hour":
-						sb.Append("HOUR( ");
+						sb.Append("TO_CHAR( ");
 						this.Visit(m.Expression);
-						sb.Append(")");
+						sb.Append(", 'HH24')");
 						return m;
 					case "Minute":
-						sb.Append("MINUTE( ");
+						sb.Append("TO_CHAR( ");
 						this.Visit(m.Expression);
-						sb.Append(")");
+						sb.Append(", 'MI')");
 						return m;
 					case "Second":
-						sb.Append("SECOND( ");
+						sb.Append("TO_CHAR( ");
 						this.Visit(m.Expression);
-						sb.Append(")");
+						sb.Append(", 'SS')");
 						return m;
 					case "Millisecond":
-						sb.Append("MICROSECOND( ");
+						sb.Append("TO_CHAR( ");
 						this.Visit(m.Expression);
-						sb.Append(")");
+						sb.Append(", 'FF')");
 						return m;
 					case "DayOfWeek":
-						sb.Append("(DAYOFWEEK(");
+						sb.Append("(TO_CHAR(");
 						this.Visit(m.Expression);
-						sb.Append(") - 1)");
+						sb.Append(", 'D') - 1)");
 						return m;
 					case "DayOfYear":
-						sb.Append("(DAYOFYEAR( ");
+						sb.Append("(TO_CHAR( ");
 						this.Visit(m.Expression);
-						sb.Append(") - 1)");
+						sb.Append(", 'DDD') - 1)");
 						return m;
 				}
 			}
