@@ -42,6 +42,8 @@ FROM     (SELECT ROW_NUMBER() OVER ({1}) AS Row,
             AS PagedResults
 WHERE  Row >= {5} AND Row <= {6}";
 
+        
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OracleGenerator"/> class.
 		/// </summary>

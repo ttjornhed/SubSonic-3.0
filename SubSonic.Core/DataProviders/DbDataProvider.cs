@@ -467,7 +467,15 @@ namespace SubSonic.DataProviders
                 conn.Open();
             return conn;
         }
+        public object ConvertDataValueForThisProvider(object input)
+        {
+            return SchemaGenerator.ConvertDataValueForThisProvider(input);
+        }
 
+        public DbType ConvertDataTypeToDbType(DbType dataType)
+        {
+            return SchemaGenerator.ConvertDataTypeToDbType(dataType);
+        }
         
     }
 }

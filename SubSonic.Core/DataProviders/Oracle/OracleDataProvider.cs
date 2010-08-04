@@ -46,5 +46,9 @@ namespace SubSonic.DataProviders.Oracle {
 
         public override IQueryLanguage QueryLanguage { get { return new OracleLanguage(this); } }
 
+        new public string ParameterPrefix
+        {
+            get { return ":"; }
+        }
 	}
 }

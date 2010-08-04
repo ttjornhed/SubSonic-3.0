@@ -32,7 +32,7 @@ namespace SubSonic.DataProviders.Schema
         /// </summary>
         /// <param name="tableName">Name of the table.</param>
         /// <returns></returns>
-        string BuildDropTableStatement(string tableName);
+        //string BuildDropTableStatement(string tableName);
 
         /// <summary>
         /// Adds the column.

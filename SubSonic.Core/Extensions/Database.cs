@@ -176,7 +176,16 @@ namespace SubSonic.Extensions
                     }
                     else if(currentProp.PropertyType == typeof(Guid))
                     {
-						currentProp.SetValue(item, rdr.GetGuid(i), null);
+                        if (rdr[i] is Guid)
+                        {
+                            currentProp.SetValue(item, rdr.GetGuid(i), null);
+                        }
+                        else
+                        {
+                            string guidInString = rdr.GetString(i);
+                            Guid guid = new Guid(guidInString);
+                            currentProp.SetValue(item, guid, null);
+                        }
 					}
 					else if (Objects.IsNullableEnum(currentProp.PropertyType))
 					{

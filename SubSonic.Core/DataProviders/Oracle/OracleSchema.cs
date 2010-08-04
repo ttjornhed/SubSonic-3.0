@@ -35,6 +35,16 @@ namespace SubSonic.DataProviders.Oracle
 			       	: String.Format("DECLARE BEGIN EXECUTE IMMEDIATE '{0}'; {1} END;", tableSql, sequenceSql);
 		}
 
+        /// <summary>
+        /// Builds a DROP TABLE statement.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <returns></returns>
+        /*public override string BuildDropTableStatement(string tableName)
+        {
+
+        }*/
+
 		public override string BuildDropTableStatement(ITable table)
         {
 			StringBuilder sqlBulder = new StringBuilder();

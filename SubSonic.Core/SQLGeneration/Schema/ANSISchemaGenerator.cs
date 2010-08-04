@@ -56,7 +56,7 @@ namespace SubSonic.SqlGeneration.Schema
         /// </summary>
         /// <param name="tableName">Name of the table.</param>
         /// <returns></returns>
-        public virtual string BuildDropTableStatement(string tableName)
+        protected virtual string BuildDropTableStatement(string tableName)
         {
             return string.Format(DROP_TABLE, tableName);
         }
