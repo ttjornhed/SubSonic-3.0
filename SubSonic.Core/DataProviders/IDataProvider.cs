@@ -20,34 +20,31 @@ using System.Reflection;
 using SubSonic.Query;
 using SubSonic.Schema;
 using SubSonic.SqlGeneration.Schema;
+using SubSonic.DataProviders.Schema;
+
+using SubSonic.Linq.Structure;
 
 namespace SubSonic.DataProviders
 {
-    public enum DataClient
-    {
-        SqlClient,
-        //SqlCEClient,
-        MySqlClient,
-        //OleDbClient,
-        OracleClient,
-        OracleDataAccessClient,
-        SQLite
-    }
-
+ 
     public interface IDataProvider
     {
+
         //execution
         string DbDataProviderName { get; }
         string Name { get; }
-        DataClient Client { get; set; }
+        //string ClientName { get; set; }
         TextWriter Log { get; set; }
 
         /// <summary>
         /// Holds list of tables, views, stored procedures, etc.
         /// </summary>
-        IDatabaseSchema Schema { get; set; }
-
+        IDatabaseSchema Schema { get; }
         ISchemaGenerator SchemaGenerator { get; }
+        ISqlFragment SqlFragment { get; }
+        IQueryLanguage QueryLanguage { get; }
+        ISqlGenerator GetSqlGenerator(SqlQuery query);
+
         string ParameterPrefix { get; }
         DbConnection CurrentSharedConnection { get; }
         string ConnectionString { get; }
@@ -63,21 +60,11 @@ namespace SubSonic.DataProviders
         ITable FindOrCreateTable<T>() where T : new();
         ITable FindOrCreateTable(Type type);
         DbCommand CreateCommand();
-
-        /// <summary>
-        /// This method is a place to convert data types before they are added to a DbParameter's Value.
-        /// This can be used to convert object to a different data type incase a DB provider doesn't natively
-        /// support that type. For example, Oracle doesn't support 'bool' so it needs to be converted to a
-        /// string or number instead.
-        /// </summary>
-        /// <param name="input">The original data.</param>
-        /// <returns>The object to set the parameter's value to.</returns>
-        object ConvertDataTypeForParameter(object input);
-
         //SQL formatting
         string QualifyTableName(ITable tbl);
         string QualifyColumnName(IColumn column);
         string QualifySPName(IStoredProcedure sp);
+        string InsertionIdentityFetchString {get;}
         //connection bits
         DbConnection InitializeSharedConnection(string connectionString);
         DbConnection InitializeSharedConnection();
@@ -85,5 +72,7 @@ namespace SubSonic.DataProviders
         DbConnection CreateConnection();
         void MigrateToDatabase<T>(Assembly assembly);
         void MigrateNamespaceToDatabase(string modelNamespace, Assembly assembly);
+        object ConvertDataValueForThisProvider(object input);
+        DbType ConvertDataTypeToDbType(DbType dataType);
     }
 }

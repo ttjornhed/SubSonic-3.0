@@ -16,6 +16,8 @@ using SubSonic.DataProviders;
 using SubSonic.Extensions;
 using SubSonic.Schema;
 using Xunit;
+using SubSonic.SqlGeneration.Schema;
+using System;
 
 namespace SubSonic.Tests.Migrations
 {
@@ -36,7 +38,7 @@ namespace SubSonic.Tests.Migrations
             var shouldbe =
                 @"CREATE TABLE `SubSonicTests` (
   [Key] guid NOT NULL PRIMARY KEY,
-  [Thinger] integer NOT NULL,
+  [Thinger] int NOT NULL,
   [Name] nvarchar(255) NOT NULL,
   [UserName] nvarchar(500) NOT NULL,
   [CreatedOn] datetime NOT NULL,
@@ -46,6 +48,7 @@ namespace SubSonic.Tests.Migrations
   [Long] decimal(10, 3) NULL,
   [SomeFlag] tinyint NOT NULL,
   [SomeNullableFlag] tinyint NULL,
+  [BinaryAttachment] blob NULL,
   [LongText] TEXT  NOT NULL,
   [MediumText] nvarchar(800) NOT NULL 
 );";
@@ -75,7 +78,7 @@ namespace SubSonic.Tests.Migrations
         public void CreateColumnSql_Should_Create_Valid_Sql()
         {
             var shouldbe = @"ALTER TABLE `SubSonicTests` ADD `UserName` nvarchar(500) NOT NULL DEFAULT '';
-UPDATE SubSonicTests SET UserName='';";
+UPDATE `SubSonicTests` SET `UserName`='';";
 
             var sql = typeof(SubSonicTest).ToSchemaTable(_provider).GetColumn("UserName").CreateSql;
             Assert.Equal(shouldbe, sql);
@@ -88,6 +91,25 @@ UPDATE SubSonicTests SET UserName='';";
 
             var sql = typeof(SubSonicTest).ToSchemaTable(_provider).GetColumn("UserName").AlterSql;
             Assert.Equal(shouldbe, sql);
+        }
+
+        [Fact]
+        public void StringLength_Attribute_Should_Be_Applied_To_Primary_Key_Columns()
+        {
+            var shouldBe = @"CREATE TABLE `SubSonicTestWithAttributes` (
+  [Id] nvarchar(11) NOT NULL PRIMARY KEY 
+);";
+
+            var sql = typeof(SubSonicTestWithAttributes).ToSchemaTable(_provider).CreateSql;
+
+            Assert.Equal(shouldBe, sql);
+        }
+
+        private class SubSonicTestWithAttributes
+        {
+            [SubSonicStringLength(11)]
+            [SubSonicPrimaryKey]
+            public string Id { get; set; }
         }
     }
 }

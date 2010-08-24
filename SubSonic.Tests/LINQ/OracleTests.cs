@@ -2,10 +2,8 @@
 using SubSonic.Tests.Linq;
 using SubSonic.Tests.Linq.TestBases;
 using Xunit;
-using System.Linq;
-using SubSonic.Linq.Structure;
 
-namespace SubSonic.Tests.LINQ
+namespace SubSonic.Tests.Linq
 {
     /**
      *  Tests for Oracle using ODP.NET.
@@ -29,91 +27,15 @@ namespace SubSonic.Tests.LINQ
      */
 
     // [TestFixture]
-    public class OracleSelectTests : SubSonic.Tests.Linq.SelectTests
+    public class OracleSelectTests : SelectTests
     {
         public OracleSelectTests()
         {
-            _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
+            _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.Oracle);
             var setup = new Setup(_db.Provider);
             setup.DropTestTables();
             setup.CreateTestTable();
             setup.LoadTestData();
-        }
-    }
-
-    // [TestFixture]
-    public class OracleNumberTests : NumberTests
-    {
-        public OracleNumberTests()
-        {
-            _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
-            var setup = new Setup(_db.Provider);
-            setup.DropTestTables();
-            setup.CreateTestTable();
-            setup.LoadTestData();
-        }
-    }
-
-    // [TestFixture]
-    public class OracleStringTests : StringTests
-    {
-        public OracleStringTests()
-        {
-            _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
-            var setup = new Setup(_db.Provider);
-            setup.DropTestTables();
-            setup.CreateTestTable();
-            setup.LoadTestData();
-        }
-    }
-
-    // [TestFixture]
-    public class OracleDateTests : DateTests
-    {
-        public OracleDateTests()
-        {
-            _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
-            var setup = new Setup(_db.Provider);
-            setup.DropTestTables();
-            setup.CreateTestTable();
-            setup.LoadTestData();
-        }
-    }
-
-    /// <summary>
-    /// Tests the parameterization of queries.
-    /// Unlike the other data providers, we should turn all values into bind variables, instead of just strings.
-    /// This is due to the way Oracle does SQL parsing and execution plan caching, and the way it impacts scalability.
-    /// </summary>
-    public class OracleQueryParameterizationTests
-    {
-        [Fact]
-        public void CheckParameterization()
-        {
-            var _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
-            var expr = _db.Categories.Where(x => x.CategoryID == 123 || x.CategoryName == "abc").Select(x => x.CategoryID).Expression;
-            var plan = _db.QueryProvider.GetQueryPlan(expr);
-
-            // the literals should be in the plan as named values
-            Assert.Contains("CategoryName = :", plan);
-            Assert.Contains("CategoryID = :", plan);
-            Assert.Contains("(Object)\"abc\"", plan);
-            Assert.Contains("(Object)123", plan);
-        }
-
-        [Fact]
-        public void TakeNumberIsNotParameterizedWhenUsingTake()
-        {
-            var _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
-            var expr = _db.Categories.Where(x => x.CategoryID == 999).Select(x => x.CategoryID).Skip(100).Take(1).Expression;
-            var plan = _db.QueryProvider.GetQueryPlan(expr);
-
-            // 999 should habe been turned into a parameter
-            Assert.Contains("CategoryID = :", plan);
-            Assert.Contains("(Object)999", plan);
-
-            // the 1 for Take() should have been left as a literal
-            Assert.Contains("rn >= 100 AND rn <= 101", plan);
         }
     }
 }

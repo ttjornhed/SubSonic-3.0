@@ -127,6 +127,43 @@ USING INDEX
 
 -- End of DDL Script for Table NWIND.CUSTOMERS
 
+
+CREATE TABLE Region (
+  RegionID number(10,0) NOT NULL,
+  RegionDescription varchar2(50) NOT NULL,
+  PRIMARY KEY  (RegionID)
+)
+/
+
+
+CREATE TABLE Territories (
+  TerritoryID varchar2(20) NOT NULL,
+  TerritoryDescription char(50) NOT NULL,
+  RegionID number(10,0) NOT NULL,
+  PRIMARY KEY  (TerritoryID)
+)
+/
+
+ALTER TABLE Territories
+ADD CONSTRAINT FK_Territories_Region FOREIGN KEY (RegionID)
+REFERENCES region (regionid) ON DELETE CASCADE
+/
+
+CREATE TABLE EmployeeTerritories (
+  EmployeeID number(10,0) NOT NULL,
+  TerritoryID varchar2(20) NOT NULL,
+  PRIMARY KEY  (EmployeeID, TerritoryID)
+)
+/
+
+
+
+Alter table EmployeeTerritories
+add constraint FK_EmployeeTerritories_T FOREIGN KEY (TerritoryID) 
+REFERENCES territories (TerritoryID) ON DELETE cascade
+/
+
+
 -- Start of DDL Script for Table NWIND.EMPLOYEES
 -- Generated 19/01/07 19:41:30 from NWIND@INTELLIZ
 
@@ -147,7 +184,8 @@ CREATE TABLE employees
     extension                      VARCHAR2(4),
     photo                          BLOB,
     notes                          CLOB,
-    reportsto                      NUMBER(10,0))
+    reportsto                      NUMBER(10,0),
+    PhotoPath			   VARCHAR2(255))
   PCTFREE     10
   INITRANS    1
   MAXTRANS    255
@@ -231,13 +269,17 @@ BEGIN
 END;
 /
 
+Alter table EmployeeTerritories
+add constraint FK_EmployeeTerritories_Emp FOREIGN KEY (EmployeeID) 
+REFERENCES employees (EmployeeID) ON DELETE cascade
+/
 
 -- End of DDL Script for Table NWIND.EMPLOYEES
 
--- Start of DDL Script for Table NWIND.ORDER_DETAILS
+-- Start of DDL Script for Table NWIND.OrderDetails
 -- Generated 19/01/07 19:41:31 from NWIND@INTELLIZ
 
-CREATE TABLE order_details
+CREATE TABLE orderdetails
     (orderid                        NUMBER(10,0) NOT NULL,
     productid                      NUMBER(10,0) NOT NULL,
     unitprice                      NUMBER(10,2),
@@ -258,12 +300,12 @@ CREATE TABLE order_details
 
 
 
--- Constraints for ORDER_DETAILS
+-- Constraints for OrderDetails
 
 
 
-ALTER TABLE order_details
-ADD CONSTRAINT pk_order_details PRIMARY KEY (orderid, productid)
+ALTER TABLE orderdetails
+ADD CONSTRAINT pk_orderdetails PRIMARY KEY (orderid, productid)
 USING INDEX
   PCTFREE     10
   INITRANS    2
@@ -277,17 +319,10 @@ USING INDEX
 /
 
 
--- End of DDL Script for Table NWIND.ORDER_DETAILS
+-- End of DDL Script for Table NWIND.OrderDetails
 
--- Foreign Key
-ALTER TABLE order_details
-ADD CONSTRAINT fk1_orders_details FOREIGN KEY (productid)
-REFERENCES products (productid)
-/
-ALTER TABLE order_details
-ADD CONSTRAINT fk_orders_details FOREIGN KEY (orderid)
-REFERENCES orders (orderid) ON DELETE CASCADE
-/
+
+
 -- End of DDL script for Foreign Key(s)
 -- Start of DDL Script for Table NWIND.ORDERS
 -- Generated 19/01/07 19:41:31 from NWIND@INTELLIZ
@@ -341,6 +376,10 @@ USING INDEX
   )
 /
 
+ALTER TABLE orderdetails
+ADD CONSTRAINT fk_orders_details FOREIGN KEY (orderid)
+REFERENCES orders (orderid) ON DELETE CASCADE
+/
 
 -- Triggers for ORDERS
 
@@ -420,10 +459,7 @@ ALTER TABLE orders
 ADD CONSTRAINT fk1_orders FOREIGN KEY (employeeid)
 REFERENCES employees (employeeid)
 /
-ALTER TABLE orders
-ADD CONSTRAINT fk3_orders FOREIGN KEY (shipvia)
-REFERENCES shippers (shipperid)
-/
+
 ALTER TABLE orders
 ADD CONSTRAINT fk_orders FOREIGN KEY (customerid)
 REFERENCES customers (customerid)
@@ -529,13 +565,14 @@ END;
 -- End of DDL Script for Table NWIND.PRODUCTS
 
 -- Foreign Key
-ALTER TABLE products
-ADD CONSTRAINT fk1_products FOREIGN KEY (supplierid)
-REFERENCES suppliers (supplierid)
-/
+
 ALTER TABLE products
 ADD CONSTRAINT fk_products FOREIGN KEY (categoryid)
 REFERENCES categories (categoryid)
+/
+ALTER TABLE orderdetails
+ADD CONSTRAINT fk1_orders_details FOREIGN KEY (productid)
+REFERENCES products (productid)
 /
 -- End of DDL script for Foreign Key(s)
 -- Start of DDL Script for Table NWIND.SHIPPERS
@@ -576,7 +613,10 @@ USING INDEX
   )
 /
 
-
+ALTER TABLE orders
+ADD CONSTRAINT fk3_orders FOREIGN KEY (shipvia)
+REFERENCES shippers (shipperid)
+/
 -- End of DDL Script for Table NWIND.SHIPPERS
 
 -- Start of DDL Script for Table NWIND.SUPPLIERS
@@ -638,6 +678,10 @@ USING INDEX
   )
 /
 
+ALTER TABLE products
+ADD CONSTRAINT fk1_products FOREIGN KEY (supplierid)
+REFERENCES suppliers (supplierid)
+/
 
 -- Triggers for SUPPLIERS
 
@@ -782,12 +826,12 @@ SELECT Orders.ShipName, Orders.ShipAddress, Orders.ShipCity,
           Customers.PostalCode, Customers.Country,
           (FirstName || ' ' || LastName) AS Salesperson, Orders.OrderID,
           Orders.OrderDate, Orders.RequiredDate, Orders.ShippedDate,
-          Shippers.CompanyName AS ShipperName, Order_Details.ProductID,
-          Products.ProductName, Order_Details.UnitPrice,
-          Order_Details.Quantity, Order_Details.Discount,
-          (  (  Order_Details.UnitPrice
-              * Order_Details.Quantity
-              * (1 - Order_Details.Discount)
+          Shippers.CompanyName AS ShipperName, OrderDetails.ProductID,
+          Products.ProductName, OrderDetails.UnitPrice,
+          OrderDetails.Quantity, OrderDetails.Discount,
+          (  (  OrderDetails.UnitPrice
+              * OrderDetails.Quantity
+              * (1 - OrderDetails.Discount)
               / 100
              )
            * 100
@@ -803,18 +847,18 @@ SELECT Orders.ShipName, Orders.ShipAddress, Orders.ShipCity,
           ON Customers.CustomerID = Orders.CustomerID)
           ON Employees.EmployeeID = Orders.EmployeeID)
           INNER JOIN
-          Order_Details ON Orders.OrderID = Order_Details.OrderID)
-          ON Products.ProductID = Order_Details.ProductID)
+          OrderDetails ON Orders.OrderID = OrderDetails.OrderID)
+          ON Products.ProductID = OrderDetails.ProductID)
           ON Shippers.ShipperID = Orders.ShipVia
 /
 
 
 -- End of DDL Script for View NWIND.INVOICES
 
--- Start of DDL Script for View NWIND.ORDER_DETAILS_EXTENDED
+-- Start of DDL Script for View NWIND.OrderDetails_EXTENDED
 -- Generated 19/01/07 19:41:42 from NWIND@INTELLIZ
 
-CREATE OR REPLACE VIEW order_details_extended (
+CREATE OR REPLACE VIEW OrderDetails_extended (
    orderid,
    productid,
    productname,
@@ -823,17 +867,17 @@ CREATE OR REPLACE VIEW order_details_extended (
    discount,
    extendedprice )
 AS
-SELECT Order_Details.OrderID, Order_Details.ProductID,
-          Products.ProductName, Order_Details.UnitPrice,
-          Order_Details.Quantity, Order_Details.Discount,
-          ((Order_Details.UnitPrice * Quantity * (1 - Discount) / 100) * 100
+SELECT OrderDetails.OrderID, OrderDetails.ProductID,
+          Products.ProductName, OrderDetails.UnitPrice,
+          OrderDetails.Quantity, OrderDetails.Discount,
+          ((OrderDetails.UnitPrice * Quantity * (1 - Discount) / 100) * 100
           ) AS ExtendedPrice
-     FROM Products INNER JOIN Order_Details
-          ON Products.ProductID = Order_Details.ProductID
+     FROM Products INNER JOIN OrderDetails
+          ON Products.ProductID = OrderDetails.ProductID
 /
 
 
--- End of DDL Script for View NWIND.ORDER_DETAILS_EXTENDED
+-- End of DDL Script for View NWIND.OrderDetails_EXTENDED
 
 -- Start of DDL Script for View NWIND.ORDER_SUBTOTALS
 -- Generated 19/01/07 19:41:42 from NWIND@INTELLIZ
@@ -842,13 +886,13 @@ CREATE OR REPLACE VIEW order_subtotals (
    orderid,
    subtotal )
 AS
-SELECT   Order_Details.OrderID,
-            SUM (  (Order_Details.UnitPrice * Quantity * (1 - Discount) / 100
+SELECT   OrderDetails.OrderID,
+            SUM (  (OrderDetails.UnitPrice * Quantity * (1 - Discount) / 100
                    )
                  * 100
                 ) AS Subtotal
-       FROM Order_Details
-   GROUP BY Order_Details.OrderID
+       FROM OrderDetails
+   GROUP BY OrderDetails.OrderID
 /
 
 
@@ -902,16 +946,16 @@ CREATE OR REPLACE VIEW product_sales_for_1997 (
    productsales )
 AS
 SELECT   Categories.CategoryName, Products.ProductName,
-            SUM (  (Order_Details.UnitPrice * Quantity * (1 - Discount) / 100
+            SUM (  (OrderDetails.UnitPrice * Quantity * (1 - Discount) / 100
                    )
                  * 100
                 ) AS ProductSales
        FROM (Categories INNER JOIN Products
             ON Categories.CategoryID = Products.CategoryID)
             INNER JOIN
-            (Orders INNER JOIN Order_Details
-            ON Orders.OrderID = Order_Details.OrderID)
-            ON Products.ProductID = Order_Details.ProductID
+            (Orders INNER JOIN OrderDetails
+            ON Orders.OrderID = OrderDetails.OrderID)
+            ON Products.ProductID = OrderDetails.ProductID
       WHERE ((TO_CHAR (Orders.ShippedDate, 'rrrrmmdd') BETWEEN '19970101'
                                                            AND '19971231'
              )
@@ -989,14 +1033,14 @@ CREATE OR REPLACE VIEW sales_by_category (
 AS
 SELECT   Categories.CategoryID, Categories.CategoryName,
             Products.ProductName,
-            SUM (Order_Details_Extended.ExtendedPrice) AS ProductSales
+            SUM (OrderDetails_Extended.ExtendedPrice) AS ProductSales
        FROM Categories
             INNER JOIN
             (Products
             INNER JOIN
-            (Orders INNER JOIN Order_Details_Extended
-            ON Orders.OrderID = Order_Details_Extended.OrderID)
-            ON Products.ProductID = Order_Details_Extended.ProductID)
+            (Orders INNER JOIN OrderDetails_Extended
+            ON Orders.OrderID = OrderDetails_Extended.OrderID)
+            ON Products.ProductID = OrderDetails_Extended.ProductID)
             ON Categories.CategoryID = Products.CategoryID
       WHERE TO_CHAR (Orders.OrderDate, 'rrrrmmdd') BETWEEN '19970101'
                                                        AND '19971231'
@@ -1070,7 +1114,7 @@ SELECT Orders.ShippedDate, Orders.OrderID, Order_Subtotals.Subtotal
 
 CREATE SEQUENCE seq_employees
   INCREMENT BY 1
-  START WITH 11
+  START WITH 1
   MINVALUE 1
   MAXVALUE 999999999999999999999999999
   NOCYCLE
@@ -1086,7 +1130,7 @@ CREATE SEQUENCE seq_employees
 
 CREATE SEQUENCE seq_orders
   INCREMENT BY 1
-  START WITH 11078
+  START WITH 10248
   MINVALUE 1
   MAXVALUE 999999999999999999999999999
   NOCYCLE
@@ -1102,7 +1146,7 @@ CREATE SEQUENCE seq_orders
 
 CREATE SEQUENCE seq_products
   INCREMENT BY 1
-  START WITH 78
+  START WITH 1
   MINVALUE 1
   MAXVALUE 999999999999999999999999999
   NOCYCLE
@@ -1118,7 +1162,7 @@ CREATE SEQUENCE seq_products
 
 CREATE SEQUENCE seq_suppliers
   INCREMENT BY 1
-  START WITH 30
+  START WITH 1
   MINVALUE 1
   MAXVALUE 999999999999999999999999999
   NOCYCLE

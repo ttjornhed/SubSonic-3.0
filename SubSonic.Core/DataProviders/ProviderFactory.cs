@@ -14,12 +14,42 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using SubSonic.DataProviders.SqlServer;
+using SubSonic.DataProviders.MySQL;
+using SubSonic.DataProviders.SQLite;
+using SubSonic.DataProviders.Oracle;
+
 namespace SubSonic.DataProviders
 {
     public static class ProviderFactory
     {
-        //private static Dictionary<string, IDataProvider> _dataProviders = new Dictionary<string, IDataProvider>();
+        private const string DEFAULT_DB_CLIENT_TYPE_NAME = "System.Data.SqlClient";
 
+        private static Dictionary<string, Func<string, string, IDataProvider>> _factories = BuildDefaults();
+
+        private static Dictionary<string, Func<string, string, IDataProvider>> BuildDefaults()
+        {
+            var defaults = new Dictionary<string, Func<string, string, IDataProvider>>();
+
+            defaults.Add("System.Data.SqlClient", (conn, provider) => new SqlServerProvider(conn, provider));
+            defaults.Add("MySql.Data.MySqlClient", (conn, provider) => new MySQLProvider(conn, provider));
+            defaults.Add("System.Data.SQLite", (conn, provider) => new SQLiteProvider(conn, provider));
+            defaults.Add("System.Data.OracleClient", (conn, provider) => new OracleDataProvider(conn, provider));
+            defaults.Add("Oracle.DataAccess.Client", (conn, provider) => new OracleDataProvider(conn, provider));
+            
+            return defaults;
+        }
+
+        public static void Register(string providerName, Func<string, string, IDataProvider> factoryMethod)
+        {
+            if (_factories.ContainsKey(providerName))
+            {
+                _factories.Remove(providerName);
+            }
+
+            _factories.Add(providerName, factoryMethod);
+        }
+        
         public static IDataProvider GetProvider()
         {
             string connString = ConfigurationManager.ConnectionStrings[ConfigurationManager.ConnectionStrings.Count - 1].ConnectionString;
@@ -42,42 +72,22 @@ namespace SubSonic.DataProviders
             return LoadProvider(connectionString, providerName);
         }
 
-        //TODO: Why do we need this? How can we have a schema if we don't know the connection?
-
-        //public static IDataProvider GetProvider(string connectionStringName, string providerName, IDatabaseSchema schema)
-        //{
-        //    IDataProvider _provider = GetProvider(connectionStringName,providerName);
-
-        //    if (!_dataProviders.ContainsKey(connectionStringName))
-        //    {
-        //        _provider = LoadProvider(connectionStringName);
-        //        _provider.Schema = schema;
-
-        //        _dataProviders.Add(connectionStringName, _provider);
-        //    }
-        //    else
-        //    {
-        //        _provider = _dataProviders[connectionStringName];
-        //    }
-        //    return _provider;
-        //}
-
-        internal static IDataProvider LoadProvider(string connectionString, string providerName)
+        private static IDataProvider LoadProvider(string connectionString, string providerName)
         {
-            //re:  "This is throwing errors and not working",
-            //MAA,20091127:  I had to remove the SystemData section from the App.config to get this to work.  Also check the machine.config for correct entries.
-            IDataProvider result = null;
-            try
+            if (String.IsNullOrEmpty(providerName))
+                providerName = DEFAULT_DB_CLIENT_TYPE_NAME;
+
+            var factory = _factories[providerName];
+
+            if (factory == null)
             {
-                result = new DbDataProvider(connectionString, providerName);
-            }
-            catch (Exception)
-            {
-                throw new InvalidOperationException("There is no SubSonic provider for the provider you're using");
+                throw new InvalidOperationException(String.Format("Could not create a IDataProvider for providerName {0}", providerName));
             }
 
-            //if(result == null)
-            //    throw new InvalidOperationException("There is no SubSonic provider for the provider you're using");
+            IDataProvider result = factory(connectionString, providerName);
+
+            if(result == null)
+                throw new InvalidOperationException("There is no SubSonic provider for the provider you're using");
 
             return result;
         }

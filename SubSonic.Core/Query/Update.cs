@@ -13,7 +13,6 @@
 // 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Linq.Expressions;
 using SubSonic.Extensions;
@@ -21,6 +20,7 @@ using SubSonic.DataProviders;
 using SubSonic.Schema;
 using SubSonic.SqlGeneration;
 using System.Linq;
+using System.ComponentModel;
 
 namespace SubSonic.Query
 {
@@ -289,20 +289,9 @@ namespace SubSonic.Query
 
         #region Special Constraint
 
-        public Update<T> Where(Expression<Func<T, bool>> column)
+        public Update<T> Where(Expression<Func<T, bool>> expression)
         {
-            LambdaExpression lamda = column;
-            Constraint c = lamda.ParseConstraint();
-            var tbl = _provider.FindOrCreateTable(typeof(T));
-            IColumn col = tbl.GetColumnByPropertyName(c.ColumnName);
-            Constraint con = new Constraint(c.Condition, col.Name, col.QualifiedName, col.Name)
-                                 {
-                                     ParameterName = col.PropertyName,
-                                     ParameterValue = c.ParameterValue
-                                 };
-
-            _query.Constraints.Add(con);
-            return this;
+            return (Update<T>)base.Where(expression);
         }
 
         #endregion

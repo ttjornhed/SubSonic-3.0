@@ -67,7 +67,7 @@ namespace SubSonic.Query
         {
             string provider = ConfigurationManager.ConnectionStrings[connectionStringName].ProviderName;
             string cString = ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString;
-            _provider = new DbDataProvider(cString, provider);
+            _provider = ProviderFactory.GetProvider(cString, provider);
         }
 
 
@@ -452,18 +452,10 @@ namespace SubSonic.Query
 
         internal ISqlGenerator GetGenerator()
         {
-            switch(_provider.Client)
-            {
-                case DataClient.MySqlClient:
-                    return new MySqlGenerator(this);
-                case DataClient.SQLite:
-                    return new SQLiteGenerator(this);
-                case DataClient.OracleClient:
-                case DataClient.OracleDataAccessClient:
-                    return new OracleGenerator(this);
-                default:
-                    return new Sql2005Generator(this);
-            }
+            return _provider.GetSqlGenerator(this);
+            
+            //return SqlGeneratorFactory.GetInstance(_provider.ClientName, this);
+
         }
 
         #endregion

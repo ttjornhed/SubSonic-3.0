@@ -14,6 +14,7 @@
 using System;
 using SubSonic.Schema;
 using SubSonic.SqlGeneration;
+using SubSonic.DataProviders;
 
 namespace SubSonic.Query
 {
@@ -142,6 +143,7 @@ namespace SubSonic.Query
         /// Gets the join type value.
         /// </summary>
         /// <param name="j">The j.</param>
+        /// <param name="generator"></param>
         /// <returns></returns>
         public static string GetJoinTypeValue(ISqlGenerator generator, JoinType j)
         {

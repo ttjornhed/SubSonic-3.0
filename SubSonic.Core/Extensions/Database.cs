@@ -13,7 +13,6 @@
 // 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Reflection;
@@ -21,7 +20,6 @@ using SubSonic.DataProviders;
 using SubSonic.Query;
 using SubSonic.Schema;
 using Constraint=SubSonic.Query.Constraint;
-using System.Data.Common;
 
 namespace SubSonic.Extensions
 {
@@ -178,25 +176,37 @@ namespace SubSonic.Extensions
                     }
                     else if(currentProp.PropertyType == typeof(Guid))
                     {
-						currentProp.SetValue(item, rdr.GetGuid(i), null);
+                        if (rdr[i] is Guid)
+                        {
+                            currentProp.SetValue(item, rdr.GetGuid(i), null);
+                        }
+                        else
+                        {
+                            string guidInString = rdr.GetString(i);
+                            Guid guid = new Guid(guidInString);
+                            currentProp.SetValue(item, guid, null);
+                        }
 					}
 					else if (Objects.IsNullableEnum(currentProp.PropertyType))
 					{
 						var nullEnumObjectValue = Enum.ToObject(Nullable.GetUnderlyingType(currentProp.PropertyType), rdr.GetValue(i));
 						currentProp.SetValue(item, nullEnumObjectValue, null);
 					}
+                    else if (currentProp.PropertyType.IsEnum)
+                    {
+                        var enumValue = Enum.ToObject(currentProp.PropertyType, rdr.GetValue(i));
+                        currentProp.SetValue(item, enumValue, null);
+                    }
                     else{
 
 					    var val = rdr.GetValue(i);
 					    var valType = val.GetType();
                         //try to assign it
-                        if (val.GetType().IsAssignableFrom(valueType)){
+                        if (currentProp.PropertyType.IsAssignableFrom(valueType)) {
                             currentProp.SetValue(item, val, null);
                         } else {
-                            currentProp.SetValue(item, rdr.GetValue(i).ChangeTypeTo(valueType), null);
-                            
+                            currentProp.SetValue(item, val.ChangeTypeTo(currentProp.PropertyType), null);
                         }
-
 					}
                 }
                 else if(currentField != null && !DBNull.Value.Equals(rdr.GetValue(i)))
@@ -210,14 +220,19 @@ namespace SubSonic.Extensions
                     else if(currentField.FieldType == typeof(Guid))
                     {
 						currentField.SetValue(item, rdr.GetGuid(i));
-					}
-					else if (Objects.IsNullableEnum(currentField.FieldType))
-					{
-						var nullEnumObjectValue = Enum.ToObject(Nullable.GetUnderlyingType(currentField.FieldType), rdr.GetValue(i));
-						currentField.SetValue(item, nullEnumObjectValue);
-					}
-                    else
-                        currentField.SetValue(item, rdr.GetValue(i).ChangeTypeTo(valueType));
+					} else if (Objects.IsNullableEnum(currentField.FieldType)) {
+                        var nullEnumObjectValue = Enum.ToObject(Nullable.GetUnderlyingType(currentField.FieldType), rdr.GetValue(i));
+                        currentField.SetValue(item, nullEnumObjectValue);
+                    } else {
+                        var val = rdr.GetValue(i);
+                        var valType = val.GetType();
+                        //try to assign it
+                        if (currentField.FieldType.IsAssignableFrom(valueType)) {
+                            currentField.SetValue(item, val);
+                        } else {
+                            currentField.SetValue(item, val.ChangeTypeTo(currentField.FieldType));
+                        }
+                    }
                 }
             }
 
@@ -255,6 +270,7 @@ namespace SubSonic.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="rdr">The IDataReader to read from.</param>
         /// <returns></returns>
+        [Obsolete("See ToEnumerable")]
         public static IEnumerable<T> ToEnumerableValueType<T>(this IDataReader rdr)
         {
             //thanks to Pascal LaCroix for the help here...
@@ -301,8 +317,9 @@ namespace SubSonic.Extensions
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="rdr"></param>
-    	public static IEnumerable<T> ToEnumerable<T>(this IDataReader rdr, List<string> ColumnNames, Func<DbDataReader, T> projector){//mike added ColumnNames
-            // added 'projector' parameter to use as a fallback processor. this SubSonic way of creating the IEnumerable is nice, but doesn't handle all the cases that the standard projector does. If we exception trying to project on our own, fall back to the default. (Jeff V)
+        /// <param name="columnNames"></param>
+    	public static IEnumerable<T> ToEnumerable<T>(this IDataReader rdr, List<string> columnNames){//mike added ColumnNames
+
             List<T> result = new List<T>();
             while(rdr.Read()){
                 T instance = default(T);
@@ -312,55 +329,40 @@ namespace SubSonic.Extensions
                     //this is an anon type and it has read-only fields that are set
                     //in a constructor. So - read the fields and build it
                     //http://stackoverflow.com/questions/478013/how-do-i-create-and-access-a-new-instance-of-an-anonymous-class-passed-as-a-param
-                    var properties = TypeDescriptor.GetProperties(instance);
+                    var properties = type.GetProperties();
                     int objIdx = 0;
-                    object[] objArray = new object[properties.Count];
+                    object[] objArray = new object[properties.Length];
 
-                    foreach(PropertyDescriptor info in properties)
-                        objArray[objIdx++] = rdr[info.Name];
+                    foreach (var prop in properties)
+                    {
+                        objArray[objIdx++] = rdr[prop.Name];
+                    }
 
-                    result.Add((T)Activator.CreateInstance(instance.GetType(), objArray));
+                    result.Add((T)Activator.CreateInstance(type, objArray));
                 }
                     //TODO: there has to be a better way to work with the type system
-                else if(IsCoreSystemType(type))
+                else if (IsCoreSystemType(type))
                 {
                     instance = (T)rdr.GetValue(0).ChangeTypeTo(type);
                     result.Add(instance);
                 }
+                else if (type.IsValueType)
+                {
+                    instance = Activator.CreateInstance<T>();
+                    LoadValueType(rdr, ref instance);
+                    result.Add(instance);
+                }
                 else
+                {
                     instance = Activator.CreateInstance<T>();
 
-                //do we have a parameterless constructor?
-                try
-                {
-                    Load(rdr, instance, ColumnNames);//mike added ColumnNames
+                    //do we have a parameterless constructor?
+                    Load(rdr, instance, columnNames);//mike added ColumnNames
+                    result.Add(instance);
                 }
-                catch
-                {
-                    if (projector != null && rdr is DbDataReader)
-                    {
-                        // error trying to project using the SubSonic way. Try using the runtime generated projector function instead.
-                        // if that also fails, then we throw the original exception. (Jeff V)
-                        bool fail = false;
-                        try
-                        {
-                            instance = projector((DbDataReader)rdr);
-                        }
-                        catch
-                        {
-                            fail = true;
-                        }
-                        if (fail)
-                            throw; // this should throw our original exception, not the one generated by the runtime projection function.
-                    }
-                    else // no other projector specified. fail away...
-                    {
-                        throw;
-                    }
-                }
-                result.Add(instance);
             }
-            return result.AsEnumerable();
+
+            return result;
         }
 
         /// <summary>
@@ -444,7 +446,7 @@ namespace SubSonic.Extensions
                     IColumn col = tbl.GetColumn(key);
                     if(col != null)
                     {
-                        if(!col.AutoIncrement && !col.IsReadOnly)
+                        if(!col.AutoIncrement && !col.IsReadOnly && !(col.DefaultSetting != null && hashed[key] == null))
                             query.Value(col.QualifiedName, hashed[key], col.DataType);
                     }
                 }

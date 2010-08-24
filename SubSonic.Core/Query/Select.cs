@@ -24,8 +24,8 @@ namespace SubSonic.Query
     /// </summary>
     public class Select : SqlQuery
     {
-        private SqlFragment sqlFragment;
-
+        private ISqlFragment sqlFragment;
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="Select"/> class.
         /// </summary>
@@ -33,8 +33,9 @@ namespace SubSonic.Query
         /// <param name="columns">The columns.</param>
         public Select(IDataProvider provider, params string[] columns)
         {
-            this.sqlFragment = new SqlFragment(_provider);
             _provider = provider;
+            this.sqlFragment = _provider.SqlFragment;
+
             SelectColumnList = columns;
             SQLCommand = this.sqlFragment.SELECT;
         }
@@ -42,19 +43,11 @@ namespace SubSonic.Query
         /// <summary>
         /// Initializes a new instance of the <see cref="Select"/> class.
         /// </summary>
-        public Select()
-        {
-            _provider = ProviderFactory.GetProvider();
-            this.sqlFragment = new SqlFragment(_provider);
-            SQLCommand = this.sqlFragment.SELECT;
-        }
+        public Select() : this(ProviderFactory.GetProvider())
+        {}
 
-        public Select(IDataProvider provider)
-        {
-            _provider = provider;
-            this.sqlFragment = new SqlFragment(_provider);
-            SQLCommand = this.sqlFragment.SELECT;
-        }
+        public Select(IDataProvider provider) : this(provider, new string[0]) 
+        {}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Select"/> class.
@@ -63,7 +56,7 @@ namespace SubSonic.Query
         public Select(params Aggregate[] aggregates)
         {
             _provider = ProviderFactory.GetProvider();
-            this.sqlFragment = new SqlFragment(_provider);
+            this.sqlFragment = _provider.SqlFragment;
             SQLCommand = this.sqlFragment.SELECT;
             foreach(Aggregate agg in aggregates)
                 Aggregates.Add(agg);
@@ -77,7 +70,7 @@ namespace SubSonic.Query
         public Select(IDataProvider provider, params Aggregate[] aggregates)
         {
             _provider = provider;
-            this.sqlFragment = new SqlFragment(_provider);
+            this.sqlFragment = _provider.SqlFragment;
             SQLCommand = this.sqlFragment.SELECT;
             foreach(Aggregate agg in aggregates)
                 Aggregates.Add(agg);
@@ -92,20 +85,13 @@ namespace SubSonic.Query
             if(columns.Length > 0)
             {
                 _provider = columns[0].Table.Provider;
-                this.sqlFragment = new SqlFragment(_provider);
+                this.sqlFragment = _provider.SqlFragment;
                 SQLCommand = this.sqlFragment.SELECT;
                 
                 
                 SelectColumnList = new string[columns.Length];
                 for (int i = 0; i < columns.Length; i++)
                     SelectColumnList[i] = columns[i].QualifiedName;
-                
-                //user entered an array
-                //StringBuilder sb = new StringBuilder();
-                //foreach(IColumn col in columns)
-                //    sb.AppendFormat("{0}|", col.QualifiedName);
-
-                //SelectColumnList = sb.ToString().Split(new char[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
             }
         }
 
@@ -117,7 +103,7 @@ namespace SubSonic.Query
         public Select(params string[] columns)
         {
             _provider = ProviderFactory.GetProvider();
-            this.sqlFragment = new SqlFragment(_provider);
+            this.sqlFragment = _provider.SqlFragment;
             SQLCommand = this.sqlFragment.SELECT;
             if(columns.Length == 1 && columns[0].Contains(","))
             {
@@ -154,7 +140,7 @@ namespace SubSonic.Query
         public Select Expression(string sqlExpression)
         {
             _provider = ProviderFactory.GetProvider();
-            this.sqlFragment = new SqlFragment(_provider);
+            this.sqlFragment = _provider.SqlFragment;
             SQLCommand = this.sqlFragment.SELECT;
             Expressions.Add(sqlExpression);
             return this;

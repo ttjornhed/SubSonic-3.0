@@ -20,7 +20,6 @@ using SubSonic.Linq.Structure;
 using SubSonic.Query;
 using SubSonic.Schema;
 using SubSonic.Tests.TestClasses;
-using System.Text;
 
 namespace SubSonic.Tests.Linq.TestBases
 {
@@ -33,7 +32,6 @@ namespace SubSonic.Tests.Linq.TestBases
         public TestDB(IDataProvider provider)
         {
             _provider = provider;
-            _queryProvider = new DbQueryProvider(_provider);
 
             Products = new Query<Product>(provider);
             Customers = new Query<Customer>(provider);
@@ -110,7 +108,7 @@ namespace SubSonic.Tests.Linq.TestBases
 
         public Query<T> GetQuery<T>()
         {
-            return new Query<T>(_queryProvider);
+            throw new NotImplementedException();
         }
 
         public ITable FindTable(string tableName)
@@ -134,11 +132,6 @@ namespace SubSonic.Tests.Linq.TestBases
         public IDataProvider Provider
         {
             get { return _provider; }
-        }
-
-        public DbQueryProvider QueryProvider
-        {
-            get { return _queryProvider; }
         }
 
         public Select Select
@@ -226,6 +219,8 @@ namespace SubSonic.Tests.Linq.TestBases
                 p.UnitPrice = 1.245M * i / 5.22M * 8.09M;
                 p.Discontinued = i % 2 == 0 ? true : false;
                 p.CategoryID = categoryCounter;
+                p.Image = p.Sku.ToByteArray();
+
                 batch.QueueForTransaction(p.ToInsertQuery(_provider));
 
                 categoryCounter++;
@@ -277,13 +272,13 @@ namespace SubSonic.Tests.Linq.TestBases
                 typeof(Category)
             };
 
-            foreach(var t in tables)
+            foreach (var t in tables)
             {
                 try
                 {
                     _provider.ExecuteQuery(new QueryCommand(t.ToSchemaTable(_provider).DropSql, _provider));
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     //do nothing - this is here to catch a DROP error
                 }

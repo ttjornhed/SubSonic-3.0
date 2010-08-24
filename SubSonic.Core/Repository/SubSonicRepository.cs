@@ -141,7 +141,7 @@ namespace SubSonic.Repository
             if(!sortBy.EndsWith(" desc", StringComparison.InvariantCultureIgnoreCase))
                 qry.OrderAsc(sortBy);
             else
-                qry.OrderDesc(sortBy.Replace(" desc", ""));
+                qry.OrderDesc(sortBy.FastReplace(" desc", ""));
 
             var list = qry.ExecuteTypedList<T>();
 
@@ -187,17 +187,10 @@ namespace SubSonic.Repository
             object result = null;
             if(query != null)
             {
-                if (provider.Client == DataClient.SqlClient)
-                {
-                    //add in SCOPE_INDENTITY so we can pull back the ID
-                    query.CommandSql += "; SELECT SCOPE_IDENTITY() as new_id";
-                }
-                else if (provider.Client == DataClient.OracleClient || provider.Client == DataClient.OracleDataAccessClient)
-                {//oracle hates ;
-                    query.CommandSql = query.CommandSql.Replace(';', ' ');
-                }
+                
+                    query.CommandSql += provider.InsertionIdentityFetchString;  
 
-                /** add "using" keywords to dispose IDataReader rdr object after its get out of the scope **/
+                /* add "using" keywords to dispose IDataReader rdr object after its get out of the scope */
                 using (var rdr = provider.ExecuteReader(query))
                 {
                     if (rdr.Read())
@@ -214,7 +207,7 @@ namespace SubSonic.Repository
                             prop.SetValue(item, settable, null);
 
                         }
-                        catch (Exception x)
+                        catch (Exception)
                         {
                             //swallow it - I don't like this per se but this is a convenience and we
                             //don't want to throw the whole thing just because we can't auto-set the value

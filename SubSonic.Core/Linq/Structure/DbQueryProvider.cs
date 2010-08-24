@@ -11,9 +11,6 @@ using System.IO;
 using SubSonic.DataProviders;
 using SubSonic.Extensions;
 using SubSonic.Linq.Translation;
-using SubSonic.Linq.Translation.MySql;
-using SubSonic.Linq.Translation.SQLite;
-using SubSonic.Linq.Translation.Oracle;
 using SubSonic.Query;
 
 namespace SubSonic.Linq.Structure
@@ -25,7 +22,7 @@ namespace SubSonic.Linq.Structure
     {
         private readonly IDataProvider _provider;
         private readonly DbConnection connection;
-        private readonly QueryLanguage language;
+        private readonly IQueryLanguage language;
         private readonly QueryMapping mapping;
         private readonly QueryPolicy policy;
 
@@ -47,25 +44,7 @@ namespace SubSonic.Linq.Structure
         {
             _provider = provider;
 
-            QueryLanguage lang;
-            switch (_provider.Client)
-            {
-                case DataClient.OracleDataAccessClient:
-                case DataClient.OracleClient:
-                    lang = new OracleLanguage(_provider);
-                    break;
-                case DataClient.MySqlClient:
-                    lang = new MySqlLanguage(_provider);
-                    break;
-                case  DataClient.SQLite:
-                    lang = new SqliteLanguage(_provider);
-                    break;
-                default:
-                    lang = new TSqlLanguage(_provider);
-                    break;
-            }
-
-            //connection = _provider.CreateConnection();
+            IQueryLanguage lang = provider.QueryLanguage;
             policy = new QueryPolicy(new ImplicitMapping(lang));
 
             mapping = policy.Mapping;
@@ -88,7 +67,7 @@ namespace SubSonic.Linq.Structure
             get { return mapping; }
         }
 
-        public QueryLanguage Language
+        public IQueryLanguage Language
         {
             get { return language; }
         }
@@ -247,13 +226,6 @@ namespace SubSonic.Linq.Structure
         /// <returns></returns>
         public virtual IEnumerable<T> Execute<T>(QueryCommand<T> query, object[] paramValues)
         {
-            //DbCommand cmd = this.GetCommand(query.CommandText, query.ParameterNames, paramValues);
-            //this.LogCommand(cmd);
-            //DbDataReader reader = cmd.ExecuteReader();
-            //return Project(reader, query.Projector);
-
-            
-
             QueryCommand cmd = new QueryCommand(query.CommandText, _provider);
             for (int i = 0; i < paramValues.Length; i++)
             {
@@ -265,12 +237,8 @@ namespace SubSonic.Linq.Structure
                 
                 cmd.AddParameter(query.ParameterNames[i], paramValues[i],dbType);
             }
-/*
-            var reader = _provider.ExecuteReader(cmd);
-            var result = Project(reader, query.Projector);
-            return result;
-*/
 
+            // TODO: Can we use Database.ToEnumerable here? -> See commit 654aa2f48a67ba537e34 that fixes some issues
             IEnumerable<T> result;
             Type type = typeof (T);
             //this is so hacky - the issue is that the Projector below uses Expression.Convert, which is a bottleneck
@@ -280,31 +248,15 @@ namespace SubSonic.Linq.Structure
                 var reader = _provider.ExecuteReader(cmd);
                 result = Project(reader, query.Projector);
             } 
-			else {
-
-            	using (var reader = _provider.ExecuteReader(cmd)) {
-
-            		//use our reader stuff
-            		//thanks to Pascal LaCroix for the help here...
-            		var resultType = typeof (T);
-            		if (resultType.IsValueType) {
-            			result = reader.ToEnumerableValueType<T>();
-
-            		}
-            		else {
-            			if (query.ColumnNames.Count != 0) {//mike check to see if we have ColumnNames
-                            result = reader.ToEnumerable<T>(query.ColumnNames, query.Projector);
-						}
-            			else {
-            				result = reader.ToEnumerable<T>(null, query.Projector);
-            			}
-            		}
-
+			else 
+            {
+            	using (var reader = _provider.ExecuteReader(cmd)) 
+                {
+                    result = reader.ToEnumerable<T>(query.ColumnNames);
             	}
             }
+
         	return result;
-
-
         }
 
         /// <summary>
@@ -316,13 +268,14 @@ namespace SubSonic.Linq.Structure
         /// <returns></returns>
         public virtual IEnumerable<T> Project<T>(DbDataReader reader, Func<DbDataReader, T> fnProjector)
         {
-            // always dispose!
             try
             {
+                var readValues = new List<T>();
                 while (reader.Read())
                 {
-                    yield return fnProjector(reader);
+                    readValues.Add(fnProjector(reader));
                 }
+                return readValues;
             }
             finally
             {

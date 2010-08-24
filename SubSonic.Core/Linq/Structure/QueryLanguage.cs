@@ -19,16 +19,23 @@ namespace SubSonic.Linq.Structure
     /// <summary>
     /// Defines the language rules for the query provider
     /// </summary>
-    public abstract class QueryLanguage
+    public abstract class QueryLanguage : IQueryLanguage
     {
 
         IDataProvider _provider;
         public QueryLanguage(IDataProvider provider) {
             _provider = provider;
         }
+
+        public string ClientName { get; set; }
+
         public IDataProvider DataProvider {
             get {
                 return _provider;
+            }
+            set
+            {
+                _provider = value;
             }
         }
         
@@ -106,11 +113,7 @@ namespace SubSonic.Linq.Structure
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public virtual string Format(Expression expression)
-        {
-            // use SqlServer formatter by default
-            return TSqlFormatter.Format(expression);
-        }
+        public abstract string Format(Expression expression);
 
         /// <summary>
         /// Determine which sub-expressions must be parameters

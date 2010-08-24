@@ -10,6 +10,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using SubSonic.DataProviders;
+using System.Globalization;
 
 namespace SubSonic.Linq.Structure
 {
@@ -43,6 +44,14 @@ namespace SubSonic.Linq.Structure
             Same,
             Inner,
             Outer
+        }
+
+        protected virtual string GetPrepositionUsedBeforeNamingTablesAndColumns
+        {
+            get
+            {
+                return " AS ";
+            }
         }
 
         protected int IndentationWidth
@@ -907,7 +916,7 @@ namespace SubSonic.Linq.Structure
             return type == typeof(bool) || type == typeof(bool?);
         }
 
-        private bool IsPredicate(Expression expr)
+        public bool IsPredicate(Expression expr)
         {
             switch (expr.NodeType)
             {
@@ -1020,8 +1029,35 @@ namespace SubSonic.Linq.Structure
                         break;
                     case TypeCode.String:
                         sb.Append("'");
-                        sb.Append(value);
+                        sb.Append(EscapeString((string)value));
                         sb.Append("'");
+                        break;
+                    case TypeCode.Decimal:
+                        sb.Append(((Decimal)value).ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.Double:
+                        sb.Append(((Double)value).ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.Int16:
+                        sb.Append(((Int16)value).ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.Int32:
+                        sb.Append(((Int32)value).ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.Int64:
+                        sb.Append(((Int64)value).ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.UInt16:
+                        sb.Append(((UInt16)value).ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.UInt32:
+                        sb.Append(((UInt32)value).ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.UInt64:
+                        sb.Append(((UInt64)value).ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.DateTime:
+                        sb.Append(((DateTime)value).ToString(CultureInfo.InvariantCulture));
                         break;
                     case TypeCode.Object:
                         if (value.GetType().IsEnum)
@@ -1038,6 +1074,11 @@ namespace SubSonic.Linq.Structure
                         break;
                 }
             }
+        }
+
+        protected virtual string EscapeString(string value)
+        {
+            return value.Replace("'", "''");
         }
 
         protected string GetAliasName(TableAlias alias)

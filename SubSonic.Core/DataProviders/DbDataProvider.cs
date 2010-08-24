@@ -22,34 +22,43 @@ using SubSonic.Extensions;
 using SubSonic.Query;
 using SubSonic.Schema;
 using SubSonic.SqlGeneration.Schema;
+using SubSonic.DataProviders;
+using SubSonic.DataProviders.Schema;
+using SubSonic.SqlGeneration;
+using SubSonic.Linq.Structure;
+
 
 namespace SubSonic.DataProviders
 {
-    public class DbClientTypeName
-    {
-        public const string MsSql = "System.Data.SqlClient";
-        public const string MsSqlCe = "System.Data.SqlServerCe.3.5";
-        public const string MySql = "MySql.Data.MySqlClient";
-        //public const string OleDb = "System.Data.OleDb";
-        public const string Oracle = "System.Data.OracleClient";
-        public const string OracleDataAccess = "Oracle.DataAccess.Client";
-        public const string SqlLite = "System.Data.SQLite";
-    }
+    
 
-    public class DbDataProvider : IDataProvider
+    public abstract class DbDataProvider : IDataProvider
     {
         [ThreadStatic]
         private static DbConnection __sharedConnection;
 
-        internal DbDataProvider(string connectionString, string providerName)
+        protected DbDataProvider(string connectionString, string providerName)
         {
-            ConnectionString = connectionString;
-            DbDataProviderName = String.IsNullOrEmpty(providerName) ? DbClientTypeName.MsSql : providerName;
-            Schema = new DatabaseSchema();
-            DecideClient(DbDataProviderName);
+            if (String.IsNullOrEmpty(connectionString))
+            {
+                throw new ArgumentNullException("connectionString");
+            }
 
-            Factory = DbProviderFactories.GetFactory(DbDataProviderName);
+            ConnectionString = connectionString;
+
+            if (String.IsNullOrEmpty(providerName))
+            {
+                throw new ArgumentNullException("providerName");
+            }
+
+            DbDataProviderName = providerName;
+
+            // TODO: Schema is specific to SQL Server?
+            Schema = new DatabaseSchema();
         }
+
+        public string ConnectionString { get; private set; }
+        public string DbDataProviderName { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether [current connection string is default].
@@ -73,37 +82,33 @@ namespace SubSonic.DataProviders
 
         #region IDataProvider Members
 
-        public ISchemaGenerator SchemaGenerator
+        public abstract ISchemaGenerator SchemaGenerator { get; }
+        
+        public virtual ISqlFragment SqlFragment
         {
-            get
-            {
-                switch(Client)
-                {
-                    case DataClient.SqlClient:
-                        return new Sql2005Schema();
-                    case DataClient.MySqlClient:
-                        return new MySqlSchema();
-                    case DataClient.SQLite:
-                        return new SQLiteSchema();
-                    case DataClient.OracleDataAccessClient:
-                    case DataClient.OracleClient:
-                        return new OracleSchema();
-                    default:
-                        throw new ArgumentOutOfRangeException(Client.ToString(), "There is no generator for this client");
-                }
-            }
+            get { return new SqlFragment(); }
         }
+
+        public abstract IQueryLanguage QueryLanguage { get; }
+
+        
+        public virtual ISqlGenerator GetSqlGenerator(SqlQuery query)
+        {
+            return new ANSISqlGenerator(query);
+        }
+
+
 
         public TextWriter Log { get; set; }
 
-        public string ConnectionString { get; private set; }
+        // TODO: Is that always equal to providername?
+        //public string ClientName { get; set; }
+        public IDatabaseSchema Schema { get; private set; }
 
-        public DataClient Client { get; set; }
-        public IDatabaseSchema Schema { get; set; }
-
-        public string DbDataProviderName { get; private set; }
-
-        public DbProviderFactory Factory { get; private set; }
+        public DbProviderFactory Factory 
+        {
+            get  { return DbProviderFactories.GetFactory(DbDataProviderName); }
+        }
 
         public DbDataReader ExecuteReader(QueryCommand qry)
         {
@@ -255,11 +260,7 @@ namespace SubSonic.DataProviders
 
         public string ParameterPrefix
         {
-            get {
-                if (Client == DataClient.OracleDataAccessClient || Client == DataClient.OracleClient)
-                    return ":";    
-                return "@"; 
-            }
+            get { return "@"; }
         }
 
         public string Name
@@ -363,67 +364,14 @@ namespace SubSonic.DataProviders
             return FindOrCreateTable(typeof(T));
         }
 
-        public string QualifyTableName(ITable tbl)
+        public abstract string InsertionIdentityFetchString { get; }
+
+        public abstract string QualifyTableName(ITable tbl);
+        public abstract string QualifyColumnName(IColumn column);
+       
+        public virtual string QualifySPName(IStoredProcedure sp)
         {
-            string qualifiedTable;
-            string qualifiedFormat;
-            switch(Client)
-            {
-                case DataClient.MySqlClient:
-                case DataClient.SQLite:
-                    qualifiedTable = String.Format("`{0}`", tbl.Name);
-                    break;
-                case DataClient.OracleClient:
-                case DataClient.OracleDataAccessClient:
-                    qualifiedFormat = String.IsNullOrEmpty(tbl.SchemaName) ? "{1}" : "{0}.{1}";
-                    qualifiedTable = String.Format(qualifiedFormat, tbl.SchemaName, tbl.Name);
-                    break;
-                default:
-                    qualifiedFormat = String.IsNullOrEmpty(tbl.SchemaName) ? "[{1}]" : "[{0}].[{1}]";
-                    qualifiedTable = String.Format(qualifiedFormat, tbl.SchemaName, tbl.Name);
-                    break;
-            }
-
-            return qualifiedTable;
-        }
-
-        public string QualifyColumnName(IColumn column)
-        {
-            string qualifiedFormat;
-
-            switch(Client)
-            {
-                case DataClient.SQLite:
-                    qualifiedFormat = "`{2}`";
-                    break;
-                case DataClient.MySqlClient:
-                    qualifiedFormat = String.IsNullOrEmpty(column.SchemaName) ? "`{2}`" : "`{0}`.`{1}`.`{2}`";
-                    break;
-                case DataClient.OracleDataAccessClient:
-                case DataClient.OracleClient:
-                    qualifiedFormat = String.IsNullOrEmpty(column.SchemaName) ? "{1}.{2}" : "{0}.{1}.{2}";
-                    break;
-                default:
-                    qualifiedFormat = String.IsNullOrEmpty(column.SchemaName) ? "[{1}].[{2}]" : "[{0}].[{1}].[{2}]";
-                    break;
-            }
-
-            return String.Format(qualifiedFormat, column.Table.SchemaName, column.Table.Name, column.Name);
-        }
-
-        public string QualifySPName(IStoredProcedure sp)
-        {
-            string qualifiedFormat;
-            switch (Client)
-            {
-                case DataClient.OracleDataAccessClient:
-                case DataClient.OracleClient:
-                    qualifiedFormat = String.IsNullOrEmpty(sp.SchemaName) ? "\"{1}\"" : "\"{0}\".\"{1}\"";
-                    break;
-                default:
-                    qualifiedFormat = "[{0}].[{1}]";
-                    break;
-            }
+            const string qualifiedFormat = "[{0}].[{1}]";
             return String.Format(qualifiedFormat, sp.SchemaName, sp.Name);
         }
 
@@ -461,38 +409,19 @@ namespace SubSonic.DataProviders
         #endregion
 
 
-        private void DecideClient(string dbProviderTypeName)
-        {
-            if (dbProviderTypeName.Matches(DbClientTypeName.MsSql))
-                Client = DataClient.SqlClient;
-            else if (dbProviderTypeName.Matches(DbClientTypeName.MySql))
-                Client = DataClient.MySqlClient;
-            else if (dbProviderTypeName.Matches(DbClientTypeName.Oracle))
-                Client = DataClient.OracleClient;
-            else if (dbProviderTypeName.Matches(DbClientTypeName.OracleDataAccess))
-                Client = DataClient.OracleClient;
-            else if (dbProviderTypeName.Matches(DbClientTypeName.SqlLite))
-                Client = DataClient.SQLite;
-            else
-                Client = DataClient.SqlClient;
-        }
-
         /// <summary>
         /// Adds the params.
         /// </summary>
         /// <param name="cmd">The CMD.</param>
         /// <param name="qry">The qry.</param>
-        private void AddParams(DbCommand cmd, QueryCommand qry)
+        private static void AddParams(DbCommand cmd, QueryCommand qry)
         {
-                if(qry.Parameters != null)
+            if(qry.Parameters != null)
             {
                 foreach(QueryParameter param in qry.Parameters)
                 {
                     DbParameter p = cmd.CreateParameter();
-                    if(param.ParameterName.StartsWith(":"))
-                        p.ParameterName = param.ParameterName.Substring(1);
-                    else
-                        p.ParameterName = param.ParameterName;
+                    p.ParameterName = param.ParameterName;
                     p.Direction = param.Mode;
                     p.DbType = param.DataType;
 
@@ -512,13 +441,13 @@ namespace SubSonic.DataProviders
                         if (!String.IsNullOrEmpty(paramValue))
                         {
                             if(!paramValue.Equals("DEFAULT", StringComparison.InvariantCultureIgnoreCase))
-                                p.Value = ConvertDataTypeForParameter(new Guid(paramValue));
+                                p.Value = new Guid(paramValue);
                         }
                         else
                             p.Value = DBNull.Value;
                     }
                     else
-                        p.Value = ConvertDataTypeForParameter(param.ParameterValue);
+                        p.Value = param.ParameterValue;
 
                     cmd.Parameters.Add(p);
                 }
@@ -538,10 +467,15 @@ namespace SubSonic.DataProviders
                 conn.Open();
             return conn;
         }
-
-        public object ConvertDataTypeForParameter(object input)
+        public object ConvertDataValueForThisProvider(object input)
         {
-            return SchemaGenerator.ConvertDataTypeForParameter(input);
+            return SchemaGenerator.ConvertDataValueForThisProvider(input);
         }
+
+        public DbType ConvertDataTypeToDbType(DbType dataType)
+        {
+            return SchemaGenerator.ConvertDataTypeToDbType(dataType);
+        }
+        
     }
 }
