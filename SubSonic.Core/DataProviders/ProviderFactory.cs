@@ -18,6 +18,7 @@ using SubSonic.DataProviders.SqlServer;
 using SubSonic.DataProviders.MySQL;
 using SubSonic.DataProviders.SQLite;
 using SubSonic.DataProviders.Oracle;
+using SubSonic.DataProviders.DB2;
 
 namespace SubSonic.DataProviders
 {
@@ -36,6 +37,7 @@ namespace SubSonic.DataProviders
             defaults.Add("System.Data.SQLite", (conn, provider) => new SQLiteProvider(conn, provider));
             defaults.Add("System.Data.OracleClient", (conn, provider) => new OracleDataProvider(conn, provider));
             defaults.Add("Oracle.DataAccess.Client", (conn, provider) => new OracleDataProvider(conn, provider));
+            defaults.Add("IBM.Data.DB2", (conn, provider) => new DB2DataProvider(conn, provider));
             
             return defaults;
         }
