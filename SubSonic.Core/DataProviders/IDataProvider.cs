@@ -47,6 +47,7 @@ namespace SubSonic.DataProviders
 
         string ParameterPrefix { get; }
         DbConnection CurrentSharedConnection { get; }
+        DbTransaction CurrentSharedTransaction { get; set; }
         string ConnectionString { get; }
         DbProviderFactory Factory { get; }
         ITable GetTableFromDB(string tableName);

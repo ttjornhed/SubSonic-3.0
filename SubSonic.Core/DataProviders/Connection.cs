@@ -84,6 +84,15 @@ namespace SubSonic.DataProviders
             get { return _dataProvider.CurrentSharedConnection; }
         }
 
+        /// <summary>
+        /// Provides access to the transaction open for the shared connection.
+        /// If BeginTransactionScope() has not been called, then this wil return null.
+        /// </summary>
+        public DbTransaction CurrentTransaction
+        {
+            get { return _dataProvider.CurrentSharedTransaction; }
+        }
+
 
         #region IDisposable Members
 
@@ -107,6 +116,19 @@ namespace SubSonic.DataProviders
         {
             if(!_disposed)
             {
+                // if there is still a transaction open, then roll it back.
+                if (_dataProvider.CurrentSharedTransaction != null)
+                {
+                    try
+                    {
+                        _dataProvider.CurrentSharedTransaction.Rollback();
+                    }
+                    finally
+                    {
+                        _dataProvider.CurrentSharedTransaction = null;
+                    }
+                }
+
                 if(disposing)
                 {
                     // remove this instance from the stack
@@ -117,6 +139,36 @@ namespace SubSonic.DataProviders
                         _dataProvider.ResetSharedConnection();
 
                     _disposed = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// This can be called to start a transaction against the single shared DbConnection.
+        /// This will allow multiple SubSonic calls to share both a connection, and a transaction.
+        /// This is an alternative to using the Microsoft TransactionScope class, for Databases
+        /// that have compatability issues with Microsoft Transaction Service (MTS), or do not
+        /// want to use MTS at all.
+        /// </summary>
+        public void BeginTransactionScope()
+        {
+            if(_dataProvider.CurrentSharedTransaction == null)
+            {
+                _dataProvider.CurrentSharedTransaction = _dataProvider.CurrentSharedConnection.BeginTransaction();
+            }
+        }
+
+        public void CommitTransaction()
+        {
+            if(_dataProvider.CurrentSharedTransaction != null)
+            {
+                try
+                {
+                    _dataProvider.CurrentSharedTransaction.Commit();
+                }
+                finally
+                {
+                    _dataProvider.CurrentSharedTransaction = null;
                 }
             }
         }
