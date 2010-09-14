@@ -252,7 +252,7 @@ namespace SubSonic.Linq.Structure
             {
             	using (var reader = _provider.ExecuteReader(cmd)) 
                 {
-                    result = reader.ToEnumerable<T>(query.ColumnNames);
+                    result = reader.ToEnumerable<T>(query.ColumnNames, query.Projector);
             	}
             }
 
