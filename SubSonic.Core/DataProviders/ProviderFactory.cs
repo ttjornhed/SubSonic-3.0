@@ -19,6 +19,7 @@ using SubSonic.DataProviders.MySQL;
 using SubSonic.DataProviders.SQLite;
 using SubSonic.DataProviders.Oracle;
 using SubSonic.DataProviders.DB2;
+using System.Diagnostics;
 
 namespace SubSonic.DataProviders
 {
@@ -89,7 +90,7 @@ namespace SubSonic.DataProviders
             IDataProvider result = factory(connectionString, providerName);
 
             if(result == null)
-                throw new InvalidOperationException("There is no SubSonic provider for the provider you're using");
+                throw new InvalidOperationException(String.Format("There is no SubSonic provider for providerName {0}", providerName));
 
             return result;
         }

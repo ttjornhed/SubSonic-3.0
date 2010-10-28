@@ -143,6 +143,15 @@ namespace SubSonic.Extensions
         /// <summary>
         /// Coerces an IDataReader to try and load an object using name/property matching
         /// </summary>
+        /// <remarks>
+        /// WARNING: There is a bug in this method. If the passed in ColumnNames and the actual column
+        /// order in the data reader aren't the same (which they may not be if you are doing some table
+        /// joins and a projection into an object)
+        /// then this method might put the wrong data into the wrong properties of the object.
+        /// The passed in "ColumnNames" aren't actually the DB column names, they are the projection
+        /// object's property names. This code is assuming that the object's properties are in the same
+        /// order as the DB query's returned columns. (Jeff V.)
+        /// </remarks>
         public static void Load<T>(this IDataReader rdr, T item, List<string> ColumnNames) //mike added ColumnNames
         {
             Type iType = typeof(T);
@@ -155,10 +164,36 @@ namespace SubSonic.Extensions
 
             for(int i = 0; i < rdr.FieldCount; i++)
             {
+                /* These 2 lines can cause a bug, because it tries to find an object property named the same as
+                 * a DB column name, which isnt always what the user wanted. Take for example:
+                 * 
+                 * var o = from t in db.SomeTable
+                 *         where t.COL1 == 'foo'
+                 *         select new()
+                 *         {
+                 *           COL1 = t.COL2,
+                 *           COL2 = t.COL1
+                 *         }
+                 *
+                 * In this case, the object returned by this method will end up with the properties mapped in reverse
+                 *  (o.COL1 = t.COL1, o.COL2 = t.COL2 instead of the requested o.COL1 = t.COL2, o.COL2 = t.COL1)
+                 *
+                 * (Jeff V.)
+                 */
                 string pName = rdr.GetName(i);
                 currentProp = cachedProps.SingleOrDefault(x => x.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
 
 				//mike if the property is null and ColumnNames has data then look in ColumnNames for match
+                /* This can cause a bug because it assumes ColumnNames is in the same order as the columns
+                 * returned by the database, which is not always true.
+                 * 
+                 * It will assign 'rdr.GetValue(i)' to the object property named 'ColumnNames[i]'
+                 * but there is no guarantee that rdr's columns and ColumnNames' columns are actually in
+                 * the same order as defined by the projection. This leads to some values being assigned
+                 * the the wrong property.
+                 * 
+                 * (Jeff V.)
+                 */
 				if (currentProp == null && ColumnNames != null && ColumnNames.Count > i) {
 					currentProp = cachedProps.First(x => x.Name == ColumnNames[i]);
 				}
@@ -167,13 +202,14 @@ namespace SubSonic.Extensions
 				if(currentProp == null)
                     currentField = cachedFields.SingleOrDefault(x => x.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
 
-                if(currentProp != null && !DBNull.Value.Equals(rdr.GetValue(i)))
+                var value = rdr.GetValue(i);
+                if(currentProp != null && !DBNull.Value.Equals(value))
                 {
-                    Type valueType = rdr.GetValue(i).GetType();
+                    Type valueType = value.GetType();
                     if(valueType == typeof(Boolean))
                     {
-                        string value = rdr.GetValue(i).ToString();
-                        currentProp.SetValue(item, value == "1" || value == "True", null);
+                        string valueStr = value.ToString();
+                        currentProp.SetValue(item, valueStr == "1" || valueStr == "True", null);
                     }
                     else if(currentProp.PropertyType == typeof(Guid))
                     {
@@ -190,48 +226,43 @@ namespace SubSonic.Extensions
 					}
 					else if (Objects.IsNullableEnum(currentProp.PropertyType))
 					{
-						var nullEnumObjectValue = Enum.ToObject(Nullable.GetUnderlyingType(currentProp.PropertyType), rdr.GetValue(i));
+                        var nullEnumObjectValue = Enum.ToObject(Nullable.GetUnderlyingType(currentProp.PropertyType), value);
 						currentProp.SetValue(item, nullEnumObjectValue, null);
 					}
                     else if (currentProp.PropertyType.IsEnum)
                     {
-                        var enumValue = Enum.ToObject(currentProp.PropertyType, rdr.GetValue(i));
+                        var enumValue = Enum.ToObject(currentProp.PropertyType, value);
                         currentProp.SetValue(item, enumValue, null);
                     }
                     else{
-
-					    var val = rdr.GetValue(i);
-					    var valType = val.GetType();
                         //try to assign it
                         if (currentProp.PropertyType.IsAssignableFrom(valueType)) {
-                            currentProp.SetValue(item, val, null);
+                            currentProp.SetValue(item, value, null);
                         } else {
-                            currentProp.SetValue(item, val.ChangeTypeTo(currentProp.PropertyType), null);
+                            currentProp.SetValue(item, value.ChangeTypeTo(currentProp.PropertyType), null);
                         }
 					}
                 }
-                else if(currentField != null && !DBNull.Value.Equals(rdr.GetValue(i)))
+                else if (currentField != null && !DBNull.Value.Equals(value))
                 {
-                    Type valueType = rdr.GetValue(i).GetType();
+                    Type valueType = value.GetType();
                     if(valueType == typeof(Boolean))
                     {
-                        string value = rdr.GetValue(i).ToString();
-                        currentField.SetValue(item, value == "1" || value == "True");
+                        string valueStr = value.ToString();
+                        currentField.SetValue(item, valueStr == "1" || valueStr == "True");
                     }
                     else if(currentField.FieldType == typeof(Guid))
                     {
 						currentField.SetValue(item, rdr.GetGuid(i));
 					} else if (Objects.IsNullableEnum(currentField.FieldType)) {
-                        var nullEnumObjectValue = Enum.ToObject(Nullable.GetUnderlyingType(currentField.FieldType), rdr.GetValue(i));
+                        var nullEnumObjectValue = Enum.ToObject(Nullable.GetUnderlyingType(currentField.FieldType), value);
                         currentField.SetValue(item, nullEnumObjectValue);
                     } else {
-                        var val = rdr.GetValue(i);
-                        var valType = val.GetType();
                         //try to assign it
                         if (currentField.FieldType.IsAssignableFrom(valueType)) {
-                            currentField.SetValue(item, val);
+                            currentField.SetValue(item, value);
                         } else {
-                            currentField.SetValue(item, val.ChangeTypeTo(currentField.FieldType));
+                            currentField.SetValue(item, value.ChangeTypeTo(currentField.FieldType));
                         }
                     }
                 }
@@ -357,34 +388,50 @@ namespace SubSonic.Extensions
                 {
                     instance = Activator.CreateInstance<T>();
 
-                    //do we have a parameterless constructor?
-                    try
+                    #region old way (removed because Load() method is buggy)  (Jeff V.)
+                    //try
+                    //{
+                    //    Load(rdr, instance, columnNames);//mike added ColumnNames
+                    //}
+                    //catch
+                    //{
+                    //    if (projector != null && rdr is DbDataReader)
+                    //    {
+                    //        // error trying to project using the SubSonic way. Try using the runtime generated projector function instead.
+                    //        // if that also fails, then we throw the original exception. (Jeff V)
+                    //        bool fail = false;
+                    //        try
+                    //        {
+                    //            instance = projector((DbDataReader)rdr);
+                    //        }
+                    //        catch
+                    //        {
+                    //            fail = true;
+                    //        }
+                    //        if (fail)
+                    //            throw; // this should throw our original exception, not the one generated by the runtime projection function.
+                    //    }
+                    //    else // no other projector specified. fail away...
+                    //    {
+                    //        throw;
+                    //    }
+                    //}
+                    #endregion
+
+                    #region new way
+                    // if the data reader is a DbDataReader, then use the .NET runtime generated projection.
+                    // it is way more versatile than the SubSonic builtin method, but is also slightly slower.
+                    // however, in the interest of data correctness, it seems like a good sacrifice. (Jeff V.)
+                    if (projector != null && rdr is DbDataReader)
+                    {
+                        instance = projector((DbDataReader)rdr);
+                    }
+                    else
                     {
                         Load(rdr, instance, columnNames);//mike added ColumnNames
                     }
-                    catch
-                    {
-                        if (projector != null && rdr is DbDataReader)
-                        {
-                            // error trying to project using the SubSonic way. Try using the runtime generated projector function instead.
-                            // if that also fails, then we throw the original exception. (Jeff V)
-                            bool fail = false;
-                            try
-                            {
-                                instance = projector((DbDataReader)rdr);
-                            }
-                            catch
-                            {
-                                fail = true;
-                            }
-                            if (fail)
-                                throw; // this should throw our original exception, not the one generated by the runtime projection function.
-                        }
-                        else // no other projector specified. fail away...
-                        {
-                            throw;
-                        }
-                    }
+                    #endregion
+
                     result.Add(instance);
                 }
             }
