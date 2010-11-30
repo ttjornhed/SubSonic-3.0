@@ -311,7 +311,8 @@ namespace SubSonic.Query
                 LambdaExpression lamda = column;
                 Constraint c = lamda.ParseConstraint();
 
-                if(c.Comparison != Comparison.Equals)
+                if(c.Comparison != Comparison.Equals
+                    && c.Comparison != Comparison.Is)
                     throw new InvalidOperationException("Can't use a non-equality here");
 
                 IColumn col = _provider.FindTable(typeof(T).Name).GetColumnByPropertyName(c.ColumnName);
