@@ -482,22 +482,6 @@ namespace SubSonic.DataProviders.DB2
             return formatter.sb.ToString();
         }
 
-        protected override Expression VisitValue(Expression expr)
-        {
-            if (IsPredicate(expr))
-            {
-                sb.Append("CASE WHEN (");
-                this.Visit(expr);
-                sb.Append(") THEN 1 ELSE 0 END");
-                sb.Append(" FROM DUAL");
-            }
-            else
-            {
-                Visit(expr);
-            }
-            return expr;
-        }
-
         protected override void WriteValue(object value)
         {
             if (Type.GetTypeCode(value.GetType()) == TypeCode.DateTime)
