@@ -1,5 +1,5 @@
 ﻿using System;
-using SubSonic.DataProviders.Schema;
+using SubSonic.DataProviders;
 using SubSonic.Linq.Structure;
 using SubSonic.Query;
 using SubSonic.Schema;

@@ -3,21 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SubSonic.DataProviders;
-using System.IO;
+using SubSonic.Tests.Repositories.TestBases;
 
 namespace SubSonic.Tests.Repositories
 {
-    internal class SQLitey
-    {
-        public SQLitey()
-        {
-            if (!File.Exists(TestConfiguration.SQLiteRepositoryFilePath))
-                throw new InvalidOperationException("Can't find the DB");
-            Connection = TestConfiguration.SQLiteRepositoryConnectionString;
-        }
-
-        public string Connection { get; set; }
-    }
 
     public class SQLiteSimpleRepositoryTests : SimpleRepositoryTests
     {

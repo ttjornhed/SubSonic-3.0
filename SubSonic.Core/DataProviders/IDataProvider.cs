@@ -20,7 +20,6 @@ using System.Reflection;
 using SubSonic.Query;
 using SubSonic.Schema;
 using SubSonic.SqlGeneration.Schema;
-using SubSonic.DataProviders.Schema;
 
 using SubSonic.Linq.Structure;
 
@@ -33,7 +32,6 @@ namespace SubSonic.DataProviders
         //execution
         string DbDataProviderName { get; }
         string Name { get; }
-        //string ClientName { get; set; }
         TextWriter Log { get; set; }
 
         /// <summary>
@@ -54,6 +52,7 @@ namespace SubSonic.DataProviders
         DbDataReader ExecuteReader(QueryCommand cmd);
         DataSet ExecuteDataSet(QueryCommand cmd);
         IList<T> ToList<T>(QueryCommand cmd) where T : new();
+        IEnumerable<T> ToEnumerable<T>(QueryCommand<T> cmd, object[] paramValues);
         object ExecuteScalar(QueryCommand cmd);
         T ExecuteSingle<T>(QueryCommand cmd) where T : new();
         int ExecuteQuery(QueryCommand cmd);

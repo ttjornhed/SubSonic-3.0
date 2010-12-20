@@ -189,7 +189,7 @@ namespace SubSonic.Tests.Unit.Extensions
 
         private static IEnumerable<T> CreateEnumerable<T>(IDataReader reader, List<string> columns, IEnumerable<T> itemsOftype)
         {
-            return reader.ToEnumerable<T>(columns, null);
+            return reader.ToEnumerable<T>(columns, null, null);
         }
 
         private static IDataReader CreateDataReaderFrom<T>(IEnumerable<T> items)

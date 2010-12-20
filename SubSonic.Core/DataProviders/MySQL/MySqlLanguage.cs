@@ -22,7 +22,6 @@ namespace SubSonic.DataProviders.MySQL
         public override string Quote(string name)
         {
             return string.Format("'{0}'", name);
-            //return cb.QuoteIdentifier(name);
         }
 
         public override Expression Translate(Expression expression)

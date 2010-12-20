@@ -7,7 +7,7 @@ using SubSonic.Query;
 using SubSonic.Schema;
 using SubSonic.SqlGeneration;
 using SubSonic.SqlGeneration.Schema;
-using SubSonic.DataProviders.Schema;
+using SubSonic.DataProviders;
 
 namespace SubSonic.DataProviders.Oracle {
 	public class OracleDataProvider : DbDataProvider,IDataProvider {
