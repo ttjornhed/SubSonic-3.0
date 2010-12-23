@@ -31,11 +31,6 @@ namespace SubSonic.DataProviders
 {
     public abstract class DbDataProvider : IDataProvider
     {
-        [ThreadStatic]
-        private static DbConnection __sharedConnection;
-        [ThreadStatic]
-        private static DbTransaction __sharedTransaction;
-
 		public IInterceptionStrategy InterceptionStrategy { get; set; }
 
         protected DbDataProvider(string connectionString, string providerName)
@@ -117,8 +112,8 @@ namespace SubSonic.DataProviders
 
             DbCommand cmd = scope.Connection.CreateCommand();
             cmd.Connection = scope.Connection; //CreateConnection();
-            if (scope.IsUsingSharedConnection && __sharedTransaction != null)
-                cmd.Transaction = __sharedTransaction;
+            if (scope.IsUsingSharedConnection && CurrentSharedTransaction != null)
+                cmd.Transaction = CurrentSharedTransaction;
             cmd.CommandText = qry.CommandSql;
             cmd.CommandType = qry.CommandType;
 
@@ -157,8 +152,8 @@ namespace SubSonic.DataProviders
             using(AutomaticConnectionScope scope = new AutomaticConnectionScope(this))
             {
                 cmd.Connection = scope.Connection;
-                if (scope.IsUsingSharedConnection && __sharedTransaction != null)
-                    cmd.Transaction = __sharedTransaction;
+                if (scope.IsUsingSharedConnection && CurrentSharedTransaction != null)
+                    cmd.Transaction = CurrentSharedTransaction;
                 AddParams(cmd, qry);
                 DbDataAdapter da = Factory.CreateDataAdapter();
                 da.SelectCommand = cmd;
@@ -177,8 +172,8 @@ namespace SubSonic.DataProviders
             {
                 DbCommand cmd = Factory.CreateCommand();
                 cmd.Connection = automaticConnectionScope.Connection;
-                if (automaticConnectionScope.IsUsingSharedConnection && __sharedTransaction != null)
-                    cmd.Transaction = __sharedTransaction;
+                if (automaticConnectionScope.IsUsingSharedConnection && CurrentSharedTransaction != null)
+                    cmd.Transaction = CurrentSharedTransaction;
                 cmd.CommandType = qry.CommandType;
                 cmd.CommandText = qry.CommandSql;
                 AddParams(cmd, qry);
@@ -216,8 +211,8 @@ namespace SubSonic.DataProviders
             using(AutomaticConnectionScope automaticConnectionScope = new AutomaticConnectionScope(this))
             {
                 DbCommand cmd = automaticConnectionScope.Connection.CreateCommand();
-                if (automaticConnectionScope.IsUsingSharedConnection && __sharedTransaction != null)
-                    cmd.Transaction = __sharedTransaction;
+                if (automaticConnectionScope.IsUsingSharedConnection && CurrentSharedTransaction != null)
+                    cmd.Transaction = CurrentSharedTransaction;
                 cmd.CommandText = qry.CommandSql;
                 cmd.CommandType = qry.CommandType;
                 AddParams(cmd, qry);
@@ -248,49 +243,11 @@ namespace SubSonic.DataProviders
             get { return DbDataProviderName; }
         }
 
-        /// <summary>
-        /// Gets or sets the current shared connection.
-        /// </summary>
-        /// <value>The current shared connection.</value>
-        public DbConnection CurrentSharedConnection
-        {
-            get { return __sharedConnection; }
+        #region Shared connection and transaction handling
 
-            protected set
-            {
-                if(value == null)
-                {
-                    __sharedConnection.Dispose();
-                    __sharedConnection = null;
-                }
-                else
-                {
-                    __sharedConnection = value;
-                    __sharedConnection.Disposed += __sharedConnection_Disposed;
-                }
-            }
-        }
+        public abstract DbConnection CurrentSharedConnection { get; protected set; }
 
-        public DbTransaction CurrentSharedTransaction
-        {
-            get { return __sharedTransaction; }
-
-            set
-            {
-                if (__sharedTransaction != null)
-                {
-                    try
-                    {
-                        __sharedTransaction.Dispose();
-                    }
-                    catch
-                    {
-                        // ignore errors.
-                    }
-                }
-                __sharedTransaction = value;
-            }
-        }
+        public abstract DbTransaction CurrentSharedTransaction { get; set; }
 
         /// <summary>
         /// Initializes the shared connection.
@@ -298,7 +255,7 @@ namespace SubSonic.DataProviders
         /// <returns></returns>
         public DbConnection InitializeSharedConnection()
         {
-            if(CurrentSharedConnection == null)
+            if (CurrentSharedConnection == null)
                 CurrentSharedConnection = CreateConnection();
 
             return CurrentSharedConnection;
@@ -311,7 +268,7 @@ namespace SubSonic.DataProviders
         /// <returns></returns>
         public DbConnection InitializeSharedConnection(string sharedConnectionString)
         {
-            if(CurrentSharedConnection == null)
+            if (CurrentSharedConnection == null)
                 CurrentSharedConnection = CreateConnection(sharedConnectionString);
 
             return CurrentSharedConnection;
@@ -325,6 +282,8 @@ namespace SubSonic.DataProviders
             CurrentSharedConnection = null;
             CurrentSharedTransaction = null;
         }
+
+        #endregion
 
         public DbConnection CreateConnection()
         {
@@ -464,11 +423,6 @@ namespace SubSonic.DataProviders
                     cmd.Parameters.Add(p);
                 }
             }
-        }
-
-        private static void __sharedConnection_Disposed(object sender, EventArgs e)
-        {
-            __sharedConnection = null;
         }
 
         public DbConnection CreateConnection(string connectionString)

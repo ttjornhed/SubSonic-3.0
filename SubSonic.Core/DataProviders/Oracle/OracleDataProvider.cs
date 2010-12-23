@@ -8,6 +8,7 @@ using SubSonic.Schema;
 using SubSonic.SqlGeneration;
 using SubSonic.SqlGeneration.Schema;
 using SubSonic.DataProviders;
+using System.Data.Common;
 
 namespace SubSonic.DataProviders.Oracle {
 	public class OracleDataProvider : DbDataProvider,IDataProvider {
@@ -50,5 +51,63 @@ namespace SubSonic.DataProviders.Oracle {
         {
             get { return ":"; }
         }
+
+        #region Shared connection and transaction handling
+
+        [ThreadStatic]
+        private static DbConnection __sharedConnection;
+        [ThreadStatic]
+        private static DbTransaction __sharedTransaction;
+
+        /// <summary>
+        /// Gets or sets the current shared connection.
+        /// </summary>
+        /// <value>The current shared connection.</value>
+        public override DbConnection CurrentSharedConnection
+        {
+            get { return __sharedConnection; }
+
+            protected set
+            {
+                if (value == null)
+                {
+                    __sharedConnection.Dispose();
+                    __sharedConnection = null;
+                }
+                else
+                {
+                    __sharedConnection = value;
+                    __sharedConnection.Disposed += __sharedConnection_Disposed;
+                }
+            }
+        }
+
+        public override DbTransaction CurrentSharedTransaction
+        {
+            get { return __sharedTransaction; }
+
+            set
+            {
+                if (__sharedTransaction != null)
+                {
+                    try
+                    {
+                        __sharedTransaction.Dispose();
+                    }
+                    catch
+                    {
+                        // ignore errors.
+                    }
+                }
+                __sharedTransaction = value;
+            }
+        }
+
+        private static void __sharedConnection_Disposed(object sender, EventArgs e)
+        {
+            __sharedConnection = null;
+        }
+
+        #endregion
 	}
 }
