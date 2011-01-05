@@ -16,21 +16,19 @@
 using SubSonic.Tests.Unit.Linq.TestBases;
 using SubSonic.DataProviders;
 using SubSonic.Tests.Unit.Linq.SqlStrings;
+using System.Linq;
+using SubSonic.Extensions;
+
 namespace SubSonic.Tests.Unit.Linq
 {
-    // ReSharper disable InconsistentNaming
-    // these are unit tests and I like underscores
-    // suck it Osherove :)
-
 	public class OracleTests : SelectTests 
 	{
 		public OracleTests()
 		{
 			_selectTestsSql = new OracleSelectTestsSql();
 			_db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
-		}
-
-	}
+        }
+    }
 
     public class OracleStringTests : StringTests
     {
@@ -56,6 +54,54 @@ namespace SubSonic.Tests.Unit.Linq
         {
             _dateTestsSql = new OracleDateTestsSql();
             _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
+        }
+    }
+
+    public class OracleSpecificTests : LinqTestsBase
+    {
+        private OracleSelectTestsSql _selectTestsSql;
+
+        public OracleSpecificTests()
+		{
+			_selectTestsSql = new OracleSelectTestsSql();
+			_db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
+            _db.Provider.ExecuteDetachedForDebug = true;
+        }
+
+        [Xunit.Fact]
+        public void Ora_Where_Any_Generates_Valid_Query()
+        {
+            var result = _db.Customers.Where(c => c.CompanyName == "foo").Any();
+            var debugInfo = _db.Provider.LastExecuteDebug;
+
+            AssertEqualIgnoringExtraWhitespaceAndCarriageReturn(_selectTestsSql.Ora_Where_Any_Generates_Valid_Query, debugInfo.SQLStatement);
+        }
+
+        [Xunit.Fact]
+        public void Ora_Any_Generates_Valid_Query()
+        {
+            var result = _db.Customers.Any(c => c.CompanyName == "foo");
+            var debugInfo = _db.Provider.LastExecuteDebug;
+
+            AssertEqualIgnoringExtraWhitespaceAndCarriageReturn(_selectTestsSql.Ora_Any_Generates_Valid_Query, debugInfo.SQLStatement);
+        }
+
+        [Xunit.Fact]
+        public void Ora_Predecate_With_EqualsTrue_Generates_Valid_Query()
+        {
+            var result = _db.Customers.Where(c => c.ContactName.StartsWith("C") == true);
+            var debugInfo = result.GetQueryText();
+
+            AssertEqualIgnoringExtraWhitespaceAndCarriageReturn(_selectTestsSql.Ora_Predecate_With_EqualsTrue_Generates_Valid_Query, debugInfo);
+        }
+
+        [Xunit.Fact]
+        public void Ora_Predecate_Without_EqualsTrue_Generates_Valid_Query()
+        {
+            var result = _db.Customers.Where(c => c.ContactName.StartsWith("C"));
+            var debugInfo = result.GetQueryText();
+
+            AssertEqualIgnoringExtraWhitespaceAndCarriageReturn(_selectTestsSql.Ora_Predecate_Without_EqualsTrue_Generates_Valid_Query, debugInfo);
         }
     }
 }

@@ -100,6 +100,9 @@ namespace SubSonic.Linq.Structure
         {
             Expression plan = GetExecutionPlan(expression);
 
+            if (_provider.ExecuteDetachedForDebug) // don't execute, just return the default value.
+                SetDebugOnProvider(expression);
+
             LambdaExpression lambda = expression as LambdaExpression;
             if (lambda != null)
             {
@@ -226,7 +229,10 @@ namespace SubSonic.Linq.Structure
         /// <returns></returns>
         public virtual IEnumerable<T> Execute<T>(QueryCommand<T> query, object[] paramValues)
         {
-            return _provider.ToEnumerable<T>(query, paramValues);
+            if (_provider.ExecuteDetachedForDebug)
+                return DefaultEnum<T>();
+            else
+                return _provider.ToEnumerable<T>(query, paramValues);
         }
 
         /// <summary>
@@ -238,13 +244,23 @@ namespace SubSonic.Linq.Structure
         /// <returns></returns>
         public virtual IEnumerable<T> ExecuteDeferred<T>(QueryCommand<T> query, object[] paramValues)
         {
-            DbCommand cmd = GetCommand(query.CommandText, query.ParameterNames, paramValues);
-            LogCommand(cmd);
-            DbDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
+            if (_provider.ExecuteDetachedForDebug)
+                yield return default(T);
+            else
             {
-                yield return query.Projector(reader);
+                DbCommand cmd = GetCommand(query.CommandText, query.ParameterNames, paramValues);
+                LogCommand(cmd);
+                DbDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    yield return query.Projector(reader);
+                }
             }
+        }
+
+        private IEnumerable<T> DefaultEnum<T>()
+        {
+            yield return default(T);
         }
 
         /// <summary>
@@ -291,6 +307,16 @@ namespace SubSonic.Linq.Structure
             //    }
             //    this.log.WriteLine();
             //}
+        }
+
+        private void SetDebugOnProvider(Expression expr)
+        {
+            _provider.LastExecuteDebug = new QueryDebugInfo()
+            {
+                ExpressionString = expr.ToString(),
+                ExpressionTree = expr.PrintExpressionTree(),
+                SQLStatement = GetQueryText(expr)
+            };
         }
     }
 }

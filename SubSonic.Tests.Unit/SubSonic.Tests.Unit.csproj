@@ -99,7 +99,6 @@
     <Compile Include="Linq\SqlStrings\Sql2008SelectTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2008StringTestsSql.cs" />
     <Compile Include="Linq\TestBases\DateTests.cs" />
-    <Compile Include="Linq\TestBases\Extensions.cs" />
     <Compile Include="Linq\TestBases\NumberTests.cs" />
     <Compile Include="Linq\TestBases\SelectTests.cs" />
     <Compile Include="Extensions\DatabaseTests.cs" />

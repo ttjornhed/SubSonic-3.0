@@ -414,12 +414,17 @@ namespace SubSonic.DataProviders.Oracle
 					sb.Append(" tmp ");
 				}
 			}
-			if (select.From != null)
-			{
-				AppendNewLine(Indentation.Same);
-				sb.Append("FROM ");
-				VisitSource(select.From);
-			}
+            if (select.From != null)
+            {
+                AppendNewLine(Indentation.Same);
+                sb.Append("FROM ");
+                VisitSource(select.From);
+            }
+            else
+            {
+                AppendNewLine(Indentation.Same);
+                sb.Append("FROM DUAL");
+            }
 			if (select.Where != null)
 			{
 				AppendNewLine(Indentation.Same);
@@ -491,7 +496,23 @@ namespace SubSonic.DataProviders.Oracle
 			return formatter.sb.ToString();
 		}
 
-		protected override void WriteValue(object value) {
+        protected override Expression VisitValue(Expression expr)
+        {
+            if (IsPredicate(expr))
+            {
+                sb.Append("(CASE WHEN (");
+                this.Visit(expr);
+                sb.Append(") THEN 1 ELSE 0 END)");
+            }
+            else
+            {
+                Visit(expr);
+            }
+            return expr;
+        }
+
+        protected override void WriteValue(object value)
+        {
 			if(Type.GetTypeCode(value.GetType()) == TypeCode.DateTime)
 			{
 				sb.Append("to_date('");

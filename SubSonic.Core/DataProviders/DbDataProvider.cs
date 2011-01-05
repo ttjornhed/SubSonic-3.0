@@ -510,5 +510,9 @@ namespace SubSonic.DataProviders
                 Log.WriteLine(logMessage());
             }
         }
+
+
+        public bool ExecuteDetachedForDebug { get; set; }
+        public QueryDebugInfo LastExecuteDebug { get; set; }
     }
 }

@@ -413,5 +413,51 @@ ORDER BY t0.CustomerID";
         {
             get { return "SELECT t0.Address, t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Region FROM Customers t0 WHERE (t0.ContactName LIKE CONCAT(t0.ContactName,'%'))"; }
         }
+
+        public string Ora_Where_Any_Generates_Valid_Query
+        {
+            get
+            {
+                return @"SELECT (CASE WHEN (EXISTS(
+  SELECT NULL 
+  FROM Customers t0
+  WHERE (t0.CompanyName = 'foo')
+  )) THEN 1 ELSE 0 END) value
+FROM DUAL";
+            }
+        }
+
+        public string Ora_Any_Generates_Valid_Query
+        {
+            get
+            {
+                return @"SELECT (CASE WHEN (EXISTS(
+  SELECT NULL 
+  FROM Customers t0
+  WHERE (t0.CompanyName = 'foo')
+  )) THEN 1 ELSE 0 END) value
+FROM DUAL";
+            }
+        }
+
+        public string Ora_Predecate_With_EqualsTrue_Generates_Valid_Query
+        {
+            get
+            {
+                return @"SELECT t0.Address, t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Region
+FROM Customers t0
+WHERE ((CASE WHEN ((t0.ContactName LIKE CONCAT('C','%'))) THEN 1 ELSE 0 END) = 1)";
+            }
+        }
+
+        public string Ora_Predecate_Without_EqualsTrue_Generates_Valid_Query
+        {
+            get
+            {
+                return @"SELECT t0.Address, t0.City, t0.CompanyName, t0.ContactName, t0.Country, t0.CustomerID, t0.Region
+FROM Customers t0
+WHERE (t0.ContactName LIKE CONCAT('C','%'))";
+            }
+        }
     }
 }

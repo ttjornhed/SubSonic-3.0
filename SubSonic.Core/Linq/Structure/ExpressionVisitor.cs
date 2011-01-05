@@ -21,6 +21,7 @@ namespace SubSonic.Linq.Structure
         {
             if (exp == null)
                 return exp;
+
             switch (exp.NodeType)
             {
                 case ExpressionType.Negate:
