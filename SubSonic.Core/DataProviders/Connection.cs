@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Data;
 
 namespace SubSonic.DataProviders
 {
@@ -205,6 +206,9 @@ namespace SubSonic.DataProviders
             }
             else
                 _dbConnection = provider.CreateConnection();
+
+            if (_dbConnection.State != ConnectionState.Open)
+              _dbConnection.Open();
         }
 
         /// <summary>
