@@ -25,21 +25,26 @@ namespace SubSonic.Extensions
 
         public static string PrintDebugInfo(this IQueryable query)
         {
-            return string.Format(@"IQueryable.ToString
--------------------
+            return string.Format(@"IQueryable.Expression.ToString
+------------------------------
 {0}
 
-IQueryable.Expression.ToString
-------------------------------
+IQueryable.Expression Tree
+--------------------------
 {1}
 
-Expression Tree
----------------
+DbQueryProvider.GetQueryPlan
+----------------------------
 {2}
 
 SQL Query
 ---------
-{3}", query.ToString(), query.Expression.ToString(), query.Expression.PrintExpressionTree(), query.GetQueryText() ?? "Unable to build query text.");
+{3}",
+    query.Expression.ToString(),
+    query.Expression.PrintExpressionTree(),
+    query.Provider is DbQueryProvider ? ((DbQueryProvider)query.Provider).GetQueryPlan(query.Expression) : "Unable to get query plan.",
+    query.GetQueryText() ?? "Unable to build query text."
+    );
         }
     }
 }

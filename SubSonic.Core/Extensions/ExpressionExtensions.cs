@@ -94,6 +94,7 @@ namespace SubSonic.Extensions
                     var e13 = (ListInitExpression)expr;
                     break;
                 case "System.Linq.Expressions.MemberExpression":
+                case "System.Linq.Expressions.PropertyExpression":
                     var e15 = (MemberExpression)expr;
                     sb.AppendFormat(" MemberName=({0})", e15.Member.Name);
                     break;
@@ -101,6 +102,7 @@ namespace SubSonic.Extensions
                     var e16 = (MemberInitExpression)expr;
                     break;
                 case "System.Linq.Expressions.MethodCallExpression":
+                case "System.Linq.Expressions.MethodCallExpressionN":
                     var e17 = (MethodCallExpression)expr;
                     sb.AppendFormat(" MethodName=({0})", e17.Method.Name);
                     if (e17.Arguments != null)
@@ -115,6 +117,12 @@ namespace SubSonic.Extensions
                     break;
                 case "System.Linq.Expressions.NewExpression":
                     var e19 = (NewExpression)expr;
+                    sb.AppendFormat(" Constructor=({0})", e19.Constructor.ToString());
+                    if (e19.Arguments != null)
+                    {
+                      for (int i = 0; i < e19.Arguments.Count; i++)
+                        additionalChildren.Add(new KeyValuePair<string, Expression>("Argument" + (i + 1).ToString(), e19.Arguments[i]));
+                    }
                     break;
                 case "System.Linq.Expressions.ParameterExpression":
                     var e20 = (ParameterExpression)expr;
@@ -131,7 +139,6 @@ namespace SubSonic.Extensions
             }
             sb.AppendLine("");
 
-            var hadChild = false;
             // Loop thoruhg child nodes
             foreach (var child in additionalChildren)
             {
