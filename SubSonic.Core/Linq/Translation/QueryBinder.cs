@@ -95,14 +95,6 @@ namespace SubSonic.Linq.Translation
                             (LambdaExpression) StripQuotes(m.Arguments[3]),
                             (LambdaExpression) StripQuotes(m.Arguments[4])
                             );
-                    case "GroupJoin": // this is used for "IQueryable.GroupJoin()" and "from ... join ... into" LINQ expressions, which do Outer Joins.
-                        //return m;
-                        return BindGroupJoin(
-                            m.Type, m.Arguments[0], m.Arguments[1],
-                            (LambdaExpression)StripQuotes(m.Arguments[2]),
-                            (LambdaExpression)StripQuotes(m.Arguments[3]),
-                            (LambdaExpression)StripQuotes(m.Arguments[4])
-                            );
                     case "OrderBy":
                         return BindOrderBy(m.Type, m.Arguments[0], (LambdaExpression) StripQuotes(m.Arguments[1]),
                                            OrderType.Ascending);
@@ -329,7 +321,7 @@ namespace SubSonic.Linq.Translation
                 defaultIfEmpty = true;
             }
 
-            ProjectionExpression collectionProjection = defaultIfEmpty ? ConvertToSequence(collection) : VisitSequence(collection);
+            ProjectionExpression collectionProjection = VisitSequence(collection);
             bool isTable = collectionProjection.Source.From is TableExpression;
             JoinType joinType = isTable
                                     ? JoinType.CrossJoin
@@ -382,31 +374,6 @@ namespace SubSonic.Linq.Translation
                 new SelectExpression(alias, pc.Columns, join, null),
                 pc.Projector
                 );
-        }
-
-        protected virtual Expression BindGroupJoin(Type resultType, Expression outerSource, Expression innerSource,
-                                              LambdaExpression outerKey, LambdaExpression innerKey,
-                                              LambdaExpression resultSelector)
-        {
-          ProjectionExpression outerProjection = VisitSequence(outerSource);
-          ProjectionExpression innerProjection = VisitSequence(innerSource);
-          map[outerKey.Parameters[0]] = outerProjection.Projector;
-          Expression outerKeyExpr = Visit(outerKey.Body);
-          map[innerKey.Parameters[0]] = innerProjection.Projector;
-          Expression innerKeyExpr = Visit(innerKey.Body);
-          map[resultSelector.Parameters[0]] = outerProjection.Projector;
-          map[resultSelector.Parameters[1]] = innerProjection.Projector;
-          //Expression resultExpr = Visit(resultSelector.Body);
-          Expression resultExpr = resultSelector.Body;
-          JoinExpression join = new JoinExpression(JoinType.LeftOuter, outerProjection.Source, innerProjection.Source,
-                                                   Expression.Equal(outerKeyExpr, innerKeyExpr));
-          var alias = GetNextAlias();
-          ProjectedColumns pc = ProjectColumns(resultExpr, alias, outerProjection.Source.Alias,
-                                               innerProjection.Source.Alias);
-          return new ProjectionExpression(
-              new SelectExpression(alias, pc.Columns, join, null),
-              pc.Projector
-              );
         }
 
         protected virtual Expression BindOrderBy(Type resultType, Expression source, LambdaExpression orderSelector,

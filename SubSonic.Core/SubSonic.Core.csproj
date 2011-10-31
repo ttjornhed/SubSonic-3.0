@@ -92,6 +92,8 @@
     <Compile Include="DataProviders\SQLite\SQLiteProvider.cs" />
     <Compile Include="Extensions\ExpressionExtensions.cs" />
     <Compile Include="Extensions\IQueryableExtenstions.cs" />
+    <Compile Include="Linq\Structure\IQuery.cs" />
+    <Compile Include="Linq\Structure\QueryList.cs" />
     <Compile Include="Linq\Translation\CountOrderByRemover.cs" />
     <Compile Include="QueryDebugInfo.cs" />
     <Compile Include="Repository\SimpleRepositoryOptions.cs" />

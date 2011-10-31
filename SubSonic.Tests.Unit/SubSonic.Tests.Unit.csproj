@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="DataProviders\SharedConnectionScopeTests.cs" />
     <Compile Include="DbClientTypeName.cs" />
+    <Compile Include="Linq\MemoryTests.cs" />
     <Compile Include="Linq\OracleTests.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -98,6 +99,7 @@
     <Compile Include="Linq\SqlStrings\Sql2008NumberTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2008SelectTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2008StringTestsSql.cs" />
+    <Compile Include="Linq\TestBases\MemTestDB.cs" />
     <Compile Include="Linq\TestBases\DateTests.cs" />
     <Compile Include="Linq\TestBases\NumberTests.cs" />
     <Compile Include="Linq\TestBases\SelectTests.cs" />

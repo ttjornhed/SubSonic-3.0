@@ -255,10 +255,7 @@ namespace SubSonic.DataProviders
         /// <returns></returns>
         public DbConnection InitializeSharedConnection()
         {
-            if (CurrentSharedConnection == null)
-                CurrentSharedConnection = CreateConnection();
-
-            return CurrentSharedConnection;
+        	return InitializeSharedConnection(ConnectionString);
         }
 
         /// <summary>
@@ -268,9 +265,19 @@ namespace SubSonic.DataProviders
         /// <returns></returns>
         public DbConnection InitializeSharedConnection(string sharedConnectionString)
         {
-            if (CurrentSharedConnection == null)
-                CurrentSharedConnection = CreateConnection(sharedConnectionString);
-
+        	try
+        	{
+        		if (CurrentSharedConnection == null)
+        			CurrentSharedConnection = CreateConnection(sharedConnectionString);
+        		if (CurrentSharedConnection.State == ConnectionState.Closed)
+        			CurrentSharedConnection.Open();
+        	}
+        	catch (Exception e)
+        	{
+				if (CurrentSharedConnection == null)
+					throw new Exception("Error initializing shared connection. CurrentSharedConnection is null.", e);
+				throw new Exception(string.Format("Error initializing shared connection. Connection state: [{0}], Connection string: [{1}], Requested Connection string: [{2}]", CurrentSharedConnection.State, CurrentSharedConnection.ConnectionString, sharedConnectionString), e);
+			}
             return CurrentSharedConnection;
         }
 
@@ -279,8 +286,19 @@ namespace SubSonic.DataProviders
         /// </summary>
         public void ResetSharedConnection()
         {
-            CurrentSharedConnection = null;
-            CurrentSharedTransaction = null;
+        	try
+        	{
+        		if(CurrentSharedConnection != null && CurrentSharedConnection.State != ConnectionState.Closed)
+        			CurrentSharedConnection.Close();
+        		CurrentSharedConnection = null;
+        		CurrentSharedTransaction = null;
+        	}
+        	catch (Exception e)
+        	{
+				if (CurrentSharedConnection == null)
+					throw new Exception("Error closing shared connection. CurrentSharedConnection is null.", e);
+				throw new Exception(string.Format("Error closing shared connection. Connection state: [{0}], Connection string: [{1}]", CurrentSharedConnection.State, CurrentSharedConnection.ConnectionString), e);
+        	}
         }
 
         #endregion
@@ -427,11 +445,22 @@ namespace SubSonic.DataProviders
 
         public DbConnection CreateConnection(string connectionString)
         {
-            DbConnection conn = Factory.CreateConnection();
-            conn.ConnectionString = connectionString;
-            if(conn.State == ConnectionState.Closed)
-                conn.Open();
-            return conn;
+            if(string.IsNullOrEmpty(connectionString))
+                throw new ArgumentNullException("connectionString");
+			var conn = Factory.CreateConnection();
+			try
+			{
+				conn.ConnectionString = connectionString;
+				if (conn.State == ConnectionState.Closed)
+					conn.Open();
+				else
+					throw new ApplicationException("Created connection was already open. It should have been created in a Closed state.");
+				return conn;
+			}
+			catch(Exception ex)
+			{
+				throw new ApplicationException(string.Format("Error while creating a database connection with the connection string {0} (DBConnection.ConnectionString = {1}).", connectionString, conn.ConnectionString), ex);
+			}
         }
 
 		public virtual IEnumerable<T> ToEnumerable<T>(QueryCommand<T> query, object[] paramValues)
@@ -487,6 +516,9 @@ namespace SubSonic.DataProviders
 				/// <returns></returns>
 				public virtual IEnumerable<T> Project<T>(DbDataReader reader, Func<DbDataReader, T> fnProjector)
 				{
+          // Why is this loading into a list instead of a yield return?
+          // So if a user does db.TableWithMillionRows.Take(5) it will load all million rows into memory anyway?
+          // -Jeff V.
 					try
 					{
 						var readValues = new List<T>();

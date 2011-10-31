@@ -457,9 +457,17 @@ namespace SubSonic.DataProviders.DB2
 
             if (take > 0)
             {
-                AppendNewLine(Indentation.Same);
-                sb.Insert(0, "SELECT * FROM ( ");
-                sb.AppendFormat(") WHERE ROW_NUMBER() OVER() BETWEEN {0} AND {1}", skip+1, take + skip); // "BETWEEN" is inclusive, so add 1 to Skip (BETWEEN 1 AND 3 returns 3 rows, 1, 2, and 3, and row numbers out of the DB start at 1.)
+				if (skip == 0)
+				{
+					AppendNewLine(Indentation.Same);
+					sb.AppendFormat("FETCH FIRST {0} ROWS ONLY", take);
+				}
+				else
+				{
+					AppendNewLine(Indentation.Same);
+					sb.Insert(0, "SELECT * FROM ( ");
+					sb.AppendFormat(") WHERE ROW_NUMBER() OVER() BETWEEN {0} AND {1}", skip + 1, take + skip); // "BETWEEN" is inclusive, so add 1 to Skip (BETWEEN 1 AND 3 returns 3 rows, 1, 2, and 3, and row numbers out of the DB start at 1.)
+				}
             }
             return select;
         }
