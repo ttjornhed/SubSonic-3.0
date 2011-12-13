@@ -13,11 +13,13 @@
 // 
 
 
+using SubSonic.Linq.Structure;
 using SubSonic.Tests.Unit.Linq.TestBases;
 using SubSonic.DataProviders;
 using SubSonic.Tests.Unit.Linq.SqlStrings;
 using System.Linq;
 using SubSonic.Extensions;
+using Xunit;
 
 namespace SubSonic.Tests.Unit.Linq
 {
@@ -103,5 +105,46 @@ namespace SubSonic.Tests.Unit.Linq
 
             AssertEqualIgnoringExtraWhitespaceAndCarriageReturn(_selectTestsSql.Ora_Predecate_Without_EqualsTrue_Generates_Valid_Query, debugInfo);
         }
+
+		/// <summary>
+		/// Tests the parameterization of queries.
+		/// Unlike the other data providers, we should turn all values into bind variables, instead of just strings.
+		/// This is due to the way Oracle does SQL parsing and execution plan caching, and the way it impacts scalability.
+		/// </summary>
+		public class OracleQueryParameterizationTests
+		{
+			[Fact]
+			public void CheckParameterization()
+			{
+				var _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
+				var expr = _db.Categories.Where(x => x.CategoryID == 123 || x.CategoryName == "abc").Select(x => x.CategoryID).Expression;
+				var plan = _db.QueryProvider.GetQueryPlan(expr);
+
+				// the literals should be in the plan as named values
+				Assert.Contains("CategoryName = :", plan);
+				Assert.Contains("CategoryID = :", plan);
+				Assert.Contains("(Object)\"abc\"", plan);
+				Assert.Contains("(Object)123", plan);
+			}
+		}
+
+		public class DB2QueryParameterizationTests
+		{
+			[Fact]
+			public void CheckParameterization()
+			{
+				var _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.DB2);
+				var queryable = _db.Categories.Where(x => x.CategoryID == 123 || x.CategoryName == "abc").Select(x => x.CategoryID);
+				var expr = queryable.Expression;
+				var plan = _db.QueryProvider.GetQueryPlan(expr);
+				var query = queryable.PrintDebugInfo();
+
+				// the literals should be in the plan as named values
+				Assert.Contains("CategoryName = :", plan);
+				Assert.Contains("CategoryID = :", plan);
+				Assert.Contains("(Object)\"abc\"", plan);
+				Assert.Contains("(Object)123", plan);
+			}
+		}
     }
 }

@@ -163,6 +163,14 @@ namespace SubSonic.Linq.Translation
         }
     }
 
+	public class DB2Parameterizer : OracleParameterizer
+	{
+		public new static Expression Parameterize(Expression expression)
+		{
+			return new DB2Parameterizer().Visit(expression);
+		}
+	}
+
     internal class NamedValueGatherer : DbExpressionVisitor
     {
         HashSet<NamedValueExpression> namedValues = new HashSet<NamedValueExpression>();

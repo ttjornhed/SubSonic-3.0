@@ -117,30 +117,25 @@ namespace SubSonic.DataProviders
         {
             if(!_disposed)
             {
-                // if there is still a transaction open, then roll it back.
-                if (_dataProvider.CurrentSharedTransaction != null)
-                {
-                    try
-                    {
-                        _dataProvider.CurrentSharedTransaction.Rollback();
-                    }
-                    finally
-                    {
-                        _dataProvider.CurrentSharedTransaction = null;
-                    }
-                }
+				_disposed = true;
+				
+                // remove this instance from the stack
+                __instances.Pop();
 
-                if(disposing)
-                {
-                    // remove this instance from the stack
-                    __instances.Pop();
-
-                    // if we are the last instance, reset the connection
-                    if(__instances.Count == 0)
-                        _dataProvider.ResetSharedConnection();
-
-                    _disposed = true;
-                }
+                // if we are the last instance, reset the connection
+				if (__instances.Count == 0)
+				{
+					// if there is still a transaction open, then roll it back.
+					try
+					{
+						if (_dataProvider.CurrentSharedTransaction != null)
+							_dataProvider.CurrentSharedTransaction.Rollback();
+					}
+					finally
+					{
+						_dataProvider.ResetSharedConnection();
+					}
+				}
             }
         }
 

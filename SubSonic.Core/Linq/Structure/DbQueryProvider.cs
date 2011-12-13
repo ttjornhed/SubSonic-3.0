@@ -99,7 +99,7 @@ namespace SubSonic.Linq.Structure
         public override object Execute(Expression expression)
         {
             Expression plan = GetExecutionPlan(expression);
-
+        	//WriteToLog(plan.PrintExpressionTree());
             if (_provider.ExecuteDetachedForDebug) // don't execute, just return the default value.
                 SetDebugOnProvider(expression);
 
@@ -229,6 +229,7 @@ namespace SubSonic.Linq.Structure
         /// <returns></returns>
         public virtual IEnumerable<T> Execute<T>(QueryCommand<T> query, object[] paramValues)
         {
+        	WriteToLog(query.CommandText);
             if (_provider.ExecuteDetachedForDebug)
                 return DefaultEnum<T>();
             else
@@ -318,5 +319,14 @@ namespace SubSonic.Linq.Structure
                 SQLStatement = GetQueryText(expr)
             };
         }
+
+		private void WriteToLog(string logMessage)
+		{
+			var dbProvider = _provider as DbDataProvider;
+			if (dbProvider != null && dbProvider.Log != null)
+			{
+				dbProvider.Log.WriteLine(logMessage);
+			}
+		}
     }
 }

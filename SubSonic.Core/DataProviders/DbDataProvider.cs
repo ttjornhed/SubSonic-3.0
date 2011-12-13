@@ -226,6 +226,7 @@ namespace SubSonic.DataProviders
 
         public IList<T> ToList<T>(QueryCommand qry) where T : new()
         {
+			WriteToLog(() => "ToList: " + qry.CommandSql);
             List<T> result;
             using(var rdr = ExecuteReader(qry))
                 result = rdr.ToList<T>(GetInterceptor(typeof(T)));
@@ -265,6 +266,7 @@ namespace SubSonic.DataProviders
         /// <returns></returns>
         public DbConnection InitializeSharedConnection(string sharedConnectionString)
         {
+        	var reuse = CurrentSharedConnection != null;
         	try
         	{
         		if (CurrentSharedConnection == null)
@@ -276,7 +278,8 @@ namespace SubSonic.DataProviders
         	{
 				if (CurrentSharedConnection == null)
 					throw new Exception("Error initializing shared connection. CurrentSharedConnection is null.", e);
-				throw new Exception(string.Format("Error initializing shared connection. Connection state: [{0}], Connection string: [{1}], Requested Connection string: [{2}]", CurrentSharedConnection.State, CurrentSharedConnection.ConnectionString, sharedConnectionString), e);
+				throw new Exception(string.Format("Error initializing shared connection. Connection state: [{0}], Reusing Connection: [{1}]", CurrentSharedConnection.State, reuse), e);
+				//throw new Exception(string.Format("Error initializing shared connection. Connection state: [{0}], Connection string: [{1}], Reusing Connection: [{2}]", CurrentSharedConnection.State, CurrentSharedConnection.ConnectionString, reuse), e);
 			}
             return CurrentSharedConnection;
         }
@@ -290,16 +293,30 @@ namespace SubSonic.DataProviders
         	{
         		if(CurrentSharedConnection != null && CurrentSharedConnection.State != ConnectionState.Closed)
         			CurrentSharedConnection.Close();
-        		CurrentSharedConnection = null;
-        		CurrentSharedTransaction = null;
         	}
-        	catch (Exception e)
+        	catch (Exception)
         	{
-				if (CurrentSharedConnection == null)
-					throw new Exception("Error closing shared connection. CurrentSharedConnection is null.", e);
-				throw new Exception(string.Format("Error closing shared connection. Connection state: [{0}], Connection string: [{1}]", CurrentSharedConnection.State, CurrentSharedConnection.ConnectionString), e);
+				// intentionally ignoring exceptions.
         	}
-        }
+			try
+			{
+				if (CurrentSharedConnection != null)
+					CurrentSharedConnection.Dispose();
+			}
+			finally
+			{
+				CurrentSharedConnection = null;
+			}
+			try
+			{
+				if (CurrentSharedTransaction != null)
+					CurrentSharedTransaction.Dispose();
+			}
+			finally
+			{
+				CurrentSharedTransaction = null;
+			}
+		}
 
         #endregion
 
@@ -459,7 +476,8 @@ namespace SubSonic.DataProviders
 			}
 			catch(Exception ex)
 			{
-				throw new ApplicationException(string.Format("Error while creating a database connection with the connection string {0} (DBConnection.ConnectionString = {1}).", connectionString, conn.ConnectionString), ex);
+				throw new ApplicationException("Error while creating a database connection.", ex);
+				//throw new ApplicationException(string.Format("Error while creating a database connection with the connection string {0} (DBConnection.ConnectionString = {1}).", connectionString, conn.ConnectionString), ex);
 			}
         }
 

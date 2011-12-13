@@ -80,5 +80,10 @@ namespace SubSonic.DataProviders.Oracle
             }
             return result;
         }
+
+		public override Expression Parameterize(Expression expression)
+        {
+            return OracleParameterizer.Parameterize(expression);
+        }
     }
 }

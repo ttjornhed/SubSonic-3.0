@@ -74,5 +74,10 @@ namespace SubSonic.DataProviders.DB2
             }
             return result;
         }
-    }
+
+		public override Expression Parameterize(Expression expression)
+		{
+			return DB2Parameterizer.Parameterize(expression);
+		}
+	}
 }
