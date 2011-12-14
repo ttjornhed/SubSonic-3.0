@@ -1,9 +1,8 @@
 ﻿using System;
-using SubSonic.DataProviders;
+using System.Data.Common;
 using SubSonic.Linq.Structure;
 using SubSonic.Query;
 using SubSonic.Schema;
-using System.Data.Common;
 
 namespace SubSonic.DataProviders.DB2
 {
@@ -72,10 +71,13 @@ namespace SubSonic.DataProviders.DB2
 
             protected set
             {
-                if (value == null)
+				if (value == null)
                 {
-                    __sharedConnection.Dispose();
-                    __sharedConnection = null;
+					if (__sharedConnection != null)
+					{
+						__sharedConnection.Dispose();
+						__sharedConnection = null;
+					}
                 }
                 else
                 {
