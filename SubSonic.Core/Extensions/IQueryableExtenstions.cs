@@ -17,9 +17,9 @@ namespace SubSonic.Extensions
             {
                 return (query.Provider as IQueryText).GetQueryText(query.Expression);
             }
-            catch
+            catch(Exception e)
             {
-                return null;
+                return e.Message + "\r\n" + e.StackTrace;
             }
         }
 

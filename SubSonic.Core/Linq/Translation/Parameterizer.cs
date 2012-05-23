@@ -46,15 +46,34 @@ namespace SubSonic.Linq.Translation
         protected override Expression VisitConstant(ConstantExpression c)
         {
             if (c.Value != null && !IsNumeric(c.Value.GetType())) {
-                NamedValueExpression nv;
-                if (!this.map.TryGetValue(c.Value, out nv)) { // re-use same name-value if same value
-                    string name = "p" + (iParam++);
-                    nv = new NamedValueExpression(name, c);
-                    this.map.Add(c.Value, nv);
-                }
+                var nv = GetExistingNamedValue(c);
+                if (nv == null)
+                    nv = CreateNamedValueForConstant(c);
                 return nv;
             }
             return c;
+        }
+
+        protected NamedValueExpression GetExistingNamedValue(ConstantExpression expression)
+        {
+            NamedValueExpression nv;
+            if (map.TryGetValue(GetKeyNameForConstantExpression(expression), out nv))
+                if (nv.Value.Type == expression.Type)
+                    return nv;
+            return null;
+        }
+
+        protected NamedValueExpression CreateNamedValueForConstant(ConstantExpression expression)
+        {
+            var name = "p" + (iParam++);
+            var nv = new NamedValueExpression(name, expression);
+            map.Add(GetKeyNameForConstantExpression(expression), nv);
+            return nv;
+        }
+
+        protected string GetKeyNameForConstantExpression(ConstantExpression expression)
+        {
+            return expression.Value.ToString() + expression.Type.ToString();
         }
 
         protected override Expression VisitParameter(ParameterExpression p) 
@@ -121,13 +140,9 @@ namespace SubSonic.Linq.Translation
         {
             if (c.Value != null && doParameterization)
             {
-                NamedValueExpression nv;
-                if (!this.map.TryGetValue(c.Value, out nv))
-                { // re-use same name-value if same value
-                    string name = "p" + (iParam++);
-                    nv = new NamedValueExpression(name, c);
-                    this.map.Add(c.Value, nv);
-                }
+                var nv = GetExistingNamedValue(c);
+                if (nv == null)
+                    nv = CreateNamedValueForConstant(c);
                 return nv;
             }
             return c;

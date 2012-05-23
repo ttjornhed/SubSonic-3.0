@@ -28,7 +28,7 @@ namespace SubSonic.DataProviders.DB2
 
         public override string InsertionIdentityFetchString
         {
-            get { return ""; }
+            get { return "; SELECT IDENTITY_VAL_LOCAL() AS new_id FROM SYSIBM.SYSDUMMY1"; }
         }
 
         public override string QualifyTableName(ITable tbl)

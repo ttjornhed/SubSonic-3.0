@@ -69,16 +69,19 @@ namespace SubSonic.DataProviders.Oracle
         private bool isPaged(Expression exp)
         {
             bool result = false;
-            var projection = exp as ProjectionExpression;
-            SelectExpression outer = projection.Source;
+			if (exp is ProjectionExpression)
+			{
+				var projection = exp as ProjectionExpression;
+				SelectExpression outer = projection.Source;
 
-            //see if there is a nested select in the from
-            if (outer.From is SelectExpression && outer.Skip != null)
-            {
-                var inner = outer.From as SelectExpression;
-                result = inner.Take != null;
-            }
-            return result;
+				//see if there is a nested select in the from
+				if (outer.From is SelectExpression && outer.Skip != null)
+				{
+					var inner = outer.From as SelectExpression;
+					result = inner.Take != null;
+				}
+			}
+        	return result;
         }
 
 		public override Expression Parameterize(Expression expression)
