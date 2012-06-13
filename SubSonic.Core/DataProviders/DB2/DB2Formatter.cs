@@ -86,6 +86,11 @@ namespace SubSonic.DataProviders.DB2
                         this.Visit(m.Expression);
                         sb.Append(", 'DDD') - 1)");
                         return m;
+                    case "Date":
+                        sb.Append("TRUNC(DATE(");
+                        this.Visit(m.Expression);
+                        sb.Append("))");
+                        return m;
                 }
             }
             throw new NotSupportedException(string.Format("The member '{0}' is not supported", m.Member.Name));
