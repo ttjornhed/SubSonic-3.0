@@ -63,8 +63,11 @@ namespace SubSonic.DataProviders.MySQL
             {
                 if (value == null)
                 {
-                    __sharedConnection.Dispose();
-                    __sharedConnection = null;
+                    if (__sharedConnection != null)
+                    {
+                        __sharedConnection.Dispose();
+                        __sharedConnection = null;
+                    }
                 }
                 else
                 {
