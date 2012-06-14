@@ -308,19 +308,6 @@ namespace SubSonic.DataProviders.DB2
                         return m;
                 }
             }
-			if (m.Method.DeclaringType.GetInterfaces().Contains(typeof(IDbFunctions)))
-			{
-				sb.Append(m.Method.Name.ToUpper());
-				sb.Append("(");
-				for (var i = 0; i < m.Arguments.Count; i++)
-				{
-					if (i > 0)
-						sb.Append(", ");
-					Visit(m.Arguments[i]);
-				}
-				sb.Append(")");
-				return m;
-			}
             if (m.Method.Name == "ToString")
             {
                 if (m.Object.Type == typeof(string))
