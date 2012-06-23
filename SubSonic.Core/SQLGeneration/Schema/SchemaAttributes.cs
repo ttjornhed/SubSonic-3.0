@@ -99,6 +99,9 @@ namespace SubSonic.SqlGeneration.Schema
         }
     }
 
+    [AttributeUsage(AttributeTargets.Class)]
+    public class SubSonicUseSingularTableName : Attribute { }
+
     [AttributeUsage(AttributeTargets.Property)]
     public class SubSonicIgnoreAttribute : Attribute { }
 

@@ -333,6 +333,19 @@ namespace SubSonic.Linq.Structure
                         return m;
                 }
             }
+            else if (m.Method.DeclaringType == typeof(SubSonic.Extensions.Strings))
+            {
+                switch (m.Method.Name)
+                {
+                    case "Wildcard":
+                        sb.Append("(");
+                        this.Visit(m.Arguments[0]);
+                        sb.Append(" LIKE ");
+                        this.Visit(m.Arguments[1]);
+                        sb.Append(" )");
+                        return m;
+                }
+            }
             else if (m.Method.DeclaringType == typeof(DateTime))
             {
                 switch (m.Method.Name)
@@ -349,10 +362,14 @@ namespace SubSonic.Linq.Structure
                         }
                         break;
                 }
-            } else if (m.Method.DeclaringType == typeof(System.Data.Linq.SqlClient.SqlMethods)) {
-                switch (m.Method.Name) {
+            }
+            else if (m.Method.DeclaringType == typeof(System.Data.Linq.SqlClient.SqlMethods))
+            {
+                switch (m.Method.Name)
+                {
                     case "DateDiffDay":
-                        if (m.Arguments[1].Type == typeof(DateTime)) {
+                        if (m.Arguments[1].Type == typeof(DateTime))
+                        {
                             sb.Append("DATEDIFF(DAY,");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -362,7 +379,8 @@ namespace SubSonic.Linq.Structure
                         }
                         break;
                     case "DateDiffHour":
-                        if (m.Arguments[1].Type == typeof(DateTime)) {
+                        if (m.Arguments[1].Type == typeof(DateTime))
+                        {
                             sb.Append("DATEDIFF(HOUR,");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -372,7 +390,8 @@ namespace SubSonic.Linq.Structure
                         }
                         break;
                     case "DateDiffMicrosecond":
-                        if (m.Arguments[1].Type == typeof(DateTime)) {
+                        if (m.Arguments[1].Type == typeof(DateTime))
+                        {
                             sb.Append("DATEDIFF(MICROSECOND,");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -382,7 +401,8 @@ namespace SubSonic.Linq.Structure
                         }
                         break;
                     case "DateDiffMillisecond":
-                        if (m.Arguments[1].Type == typeof(DateTime)) {
+                        if (m.Arguments[1].Type == typeof(DateTime))
+                        {
                             sb.Append("DATEDIFF(MILLISECOND,");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -392,7 +412,8 @@ namespace SubSonic.Linq.Structure
                         }
                         break;
                     case "DateDiffMinute":
-                        if (m.Arguments[1].Type == typeof(DateTime)) {
+                        if (m.Arguments[1].Type == typeof(DateTime))
+                        {
                             sb.Append("DATEDIFF(MINUTE,");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -402,7 +423,8 @@ namespace SubSonic.Linq.Structure
                         }
                         break;
                     case "DateDiffMonth":
-                        if (m.Arguments[1].Type == typeof(DateTime)) {
+                        if (m.Arguments[1].Type == typeof(DateTime))
+                        {
                             sb.Append("DATEDIFF(MONTH,");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -412,7 +434,8 @@ namespace SubSonic.Linq.Structure
                         }
                         break;
                     case "DateDiffNanosecond":
-                        if (m.Arguments[1].Type == typeof(DateTime)) {
+                        if (m.Arguments[1].Type == typeof(DateTime))
+                        {
                             sb.Append("DATEDIFF(NANOSECOND,");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -422,7 +445,8 @@ namespace SubSonic.Linq.Structure
                         }
                         break;
                     case "DateDiffSecond":
-                        if (m.Arguments[1].Type == typeof(DateTime)) {
+                        if (m.Arguments[1].Type == typeof(DateTime))
+                        {
                             sb.Append("DATEDIFF(SECOND,");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -432,7 +456,8 @@ namespace SubSonic.Linq.Structure
                         }
                         break;
                     case "DateDiffYear":
-                        if (m.Arguments[1].Type == typeof(DateTime)) {
+                        if (m.Arguments[1].Type == typeof(DateTime))
+                        {
                             sb.Append("DATEDIFF(YEAR,");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -442,9 +467,11 @@ namespace SubSonic.Linq.Structure
                         }
                         break;
                 }
-            }            
-            else if (m.Method.DeclaringType == typeof(Decimal)) {
-                switch (m.Method.Name) {
+            }
+            else if (m.Method.DeclaringType == typeof(Decimal))
+            {
+                switch (m.Method.Name)
+                {
                     case "Add":
                     case "Subtract":
                     case "Multiply":
@@ -471,12 +498,15 @@ namespace SubSonic.Linq.Structure
                         sb.Append(")");
                         return m;
                     case "Round":
-                        if (m.Arguments.Count == 1) {
+                        if (m.Arguments.Count == 1)
+                        {
                             sb.Append("ROUND(");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", 0)");
                             return m;
-                        } else if (m.Arguments.Count == 2 && m.Arguments[1].Type == typeof(int)) {
+                        }
+                        else if (m.Arguments.Count == 2 && m.Arguments[1].Type == typeof(int))
+                        {
                             sb.Append("ROUND(");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -491,8 +521,11 @@ namespace SubSonic.Linq.Structure
                         sb.Append(", 0, 1)");
                         return m;
                 }
-            } else if (m.Method.DeclaringType == typeof(Math)) {
-                switch (m.Method.Name) {
+            }
+            else if (m.Method.DeclaringType == typeof(Math))
+            {
+                switch (m.Method.Name)
+                {
                     case "Abs":
                     case "Acos":
                     case "Asin":
@@ -519,7 +552,8 @@ namespace SubSonic.Linq.Structure
                         sb.Append(")");
                         return m;
                     case "Log":
-                        if (m.Arguments.Count == 1) {
+                        if (m.Arguments.Count == 1)
+                        {
                             goto case "Log10";
                         }
                         break;
@@ -531,12 +565,15 @@ namespace SubSonic.Linq.Structure
                         sb.Append(")");
                         return m;
                     case "Round":
-                        if (m.Arguments.Count == 1) {
+                        if (m.Arguments.Count == 1)
+                        {
                             sb.Append("ROUND(");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", 0)");
                             return m;
-                        } else if (m.Arguments.Count == 2 && m.Arguments[1].Type == typeof(int)) {
+                        }
+                        else if (m.Arguments.Count == 2 && m.Arguments[1].Type == typeof(int))
+                        {
                             sb.Append("ROUND(");
                             this.Visit(m.Arguments[0]);
                             sb.Append(", ");
@@ -1260,11 +1297,39 @@ namespace SubSonic.Linq.Structure
             {
                 this.AppendNewLine(Indentation.Inner);
                 sb.Append("ON ");
-                this.VisitPredicate(join.Condition);
+
+                var binaryExpr = join.Condition as BinaryExpression;
+
+                if (binaryExpr != null
+                    && binaryExpr.Left.NodeType == ExpressionType.New
+                    && binaryExpr.Right.NodeType == ExpressionType.New)
+                {
+                    var leftNew = binaryExpr.Left as NewExpression;
+                    var rightNew = binaryExpr.Right as NewExpression;
+
+                    if (leftNew.Arguments.Count != rightNew.Arguments.Count)
+                        throw new Exception("Anonymous types in join clauses must have the same number of arguments.");
+
+                    for (int i = 0; i < leftNew.Arguments.Count; i++)
+                    {
+                        if (i != 0)
+                            sb.Append(" AND ");
+
+                        this.VisitPredicate(BinaryExpression.Equal(leftNew.Arguments[i], rightNew.Arguments[i]));
+
+                        sb.Append(" ");
+                    }
+                }
+                else
+                {
+                    this.VisitPredicate(join.Condition);
+                }
+
                 this.Indent(Indentation.Outer);
             }
             return join;
         }
+
 
         private string GetAggregateName(AggregateType aggregateType)
         {

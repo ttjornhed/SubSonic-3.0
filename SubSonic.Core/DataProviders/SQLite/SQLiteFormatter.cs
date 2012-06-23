@@ -40,6 +40,13 @@ namespace SubSonic.DataProviders.SQLite
                         this.Visit(m.Arguments[0]);
                         sb.Append(" || '%')");
                         return m;
+                    case "Wildcard":
+                        sb.Append("(");
+                        this.Visit(m.Object);
+                        sb.Append(" LIKE ");
+                        this.Visit(m.Arguments[0]);
+                        sb.Append(" )");
+                        return m;
                     case "Concat":
                         IList<Expression> args = m.Arguments;
                         if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit) {

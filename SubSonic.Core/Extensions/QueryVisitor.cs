@@ -204,7 +204,7 @@ namespace SubSonic.Extensions
         }
 
         /// <summary>
-        /// Converts the string method calls Contains,EndsWith and StartsWith into queries
+        /// Converts the string method calls Contains, EndsWith, StartsWith, and Wildcard into queries
         /// </summary>
         /// <param name="methodCallExpression">The MethodCall we are attempting to map to a query.</param>
         /// <returns>an expression tree.</returns>
@@ -226,6 +226,9 @@ namespace SubSonic.Extensions
                         break;
                     case "StartsWith":
                         constraint.Comparison = Comparison.StartsWith;
+                        break;
+                    case "Wildcard":
+                        constraint.Comparison = Comparison.Wildcard;
                         break;
                     default:
                         return base.VisitMethodCall(methodCallExpression);

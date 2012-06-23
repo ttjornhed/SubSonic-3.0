@@ -171,7 +171,13 @@ namespace SubSonic.Extensions
     	public static ITable ToSchemaTable(this Type type, IDataProvider provider)
         {
             string tableName = type.Name;
-            tableName = tableName.MakePlural();
+            
+            /*Code to check is tablenames are changed to plural or not.*/
+            if (type.GetCustomAttributes(typeof(SubSonicUseSingularTableName), false).Length == 0)
+            {
+                tableName = tableName.MakePlural();
+            }
+
             var result = new DatabaseTable(tableName, provider);
             result.ClassName = type.Name;
 

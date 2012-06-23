@@ -30,6 +30,7 @@ namespace SubSonic.Extensions
         private const string op_LessThan = "op_LessThan";
         private const string op_LessThanOrEqual = "op_LessThanOrEqual";
         private const string startsWith = "StartsWith";
+        private const string wildcard = "Wildcard";
         private readonly List<Constraint> result;
 
         public ExpressionParser()
@@ -227,6 +228,9 @@ namespace SubSonic.Extensions
                 case endsWith:
                     // Handle book.Title.Contains("xxx")
                     BuildFromMemberAccess(expression, Comparison.EndsWith);
+                    break;
+                case wildcard:
+                    BuildFromMemberAccess(expression, Comparison.Wildcard);
                     break;
             }
         }

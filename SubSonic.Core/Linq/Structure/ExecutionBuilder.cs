@@ -277,12 +277,21 @@ namespace SubSonic.Linq.Structure
             {
                 return Expression.Condition(
                     Expression.Call(reader, "IsDBNull", null, Expression.Constant(iOrdinal)),
-                    Expression.Constant(null, outer.Type),
+                    Expression.Constant(GetDefault(outer.Type), outer.Type),
                     expr
                     );
             }
             return expr;
         }
+
+		private static object GetDefault(Type type)
+		{
+			if (type.IsValueType)
+			{
+				return Activator.CreateInstance(type);
+			}
+			return null;
+		}
 
         protected override Expression VisitColumn(ColumnExpression column)
         {

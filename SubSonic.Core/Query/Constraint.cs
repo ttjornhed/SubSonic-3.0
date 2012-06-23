@@ -61,7 +61,8 @@ namespace SubSonic.Query
         CloseParentheses,
         BetweenAnd,
         StartsWith,
-        EndsWith
+        EndsWith,
+        Wildcard
     }
 
 
@@ -368,6 +369,9 @@ namespace SubSonic.Query
 								case Comparison.EndsWith:
 										sOut = SqlComparison.LIKE;
 										break;
+                case Comparison.Wildcard:
+                    sOut = SqlComparison.LIKE;
+                    break;
                 default:
                     sOut = SqlComparison.EQUAL;
                     break;
@@ -469,6 +473,21 @@ namespace SubSonic.Query
         public SqlQuery EndsWith(string val)
         {
             return EndsWith(val, "%");
+        }
+        
+        /// <summary>
+        /// Creates a LIKE statement without '%' in the passed-in value.
+        /// </summary>
+        /// <param name="val">The val.</param>
+        /// <returns></returns>
+        public SqlQuery Wildcard(string val)
+        {
+            Comparison = Comparison.Like;
+            ParameterValue = val;
+            DbType = query.GetConstraintDbType(TableName, ColumnName, val);
+            query.Constraints.Add(this);
+
+            return query;
         }
 
         /// <summary>

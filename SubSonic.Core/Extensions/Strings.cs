@@ -791,5 +791,12 @@ namespace SubSonic.Extensions
             _USStateTable.Add("WISCONSIN", "WI");
             _USStateTable.Add("WYOMING", "WY");
         }
+    
+        public static bool Wildcard(this string sourceString, string wildcardMatch)
+        {
+            var regEx = "^" + wildcardMatch.Replace('_', '.') + "\\z";
+            var result = Regex.IsMatch(sourceString, regEx);
+            return result;
+        }
     }
 }
