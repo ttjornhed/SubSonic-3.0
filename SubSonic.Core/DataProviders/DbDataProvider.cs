@@ -139,9 +139,19 @@ namespace SubSonic.DataProviders
 
         public DbDataReader ExecuteReader(QueryCommand qry)
         {
+            string ignored;
+            
+            return ExecuteReader(qry, out ignored);
+        }
+
+        public DbDataReader ExecuteReader(QueryCommand qry, out string connectionString)
+        {
             AutomaticConnectionScope scope = new AutomaticConnectionScope(this);
 
 						WriteToLog(() => string.Format("ExecuteReader(QueryCommand):\r\n{0}", qry.CommandSql));
+
+            // Added for supporting PetaPoco integration for optimized object hydration
+            connectionString = scope.Connection.ConnectionString;
 
             DbCommand cmd = scope.Connection.CreateCommand();
             cmd.Connection = scope.Connection; //CreateConnection();
@@ -486,6 +496,7 @@ namespace SubSonic.DataProviders
 
 						// TODO: Can we use Database.ToEnumerable here? -> See commit 654aa2f48a67ba537e34 that fixes some issues
 						Type type = typeof(T);
+                        string connectionString; // Added for integration with PetaPoco for optimized object hydration
 						//this is so hacky - the issue is that the Projector below uses Expression.Convert, which is a bottleneck
 						//it's about 10x slower than our ToEnumerable. Our ToEnumerable, however, stumbles on Anon types and groupings
 						//since it doesn't know how to instantiate them (I tried - not smart enough). So we do some trickery here.
@@ -496,10 +507,10 @@ namespace SubSonic.DataProviders
 						}
 						else
 						{
-						  using (var reader = ExecuteReader(cmd))
+						  using (var reader = ExecuteReader(cmd, out connectionString))
 						  {
 
-						    return reader.ToEnumerable<T>(query.ColumnNames, GetInterceptor(type));
+                              return reader.ToEnumerable<T>(cmd.CommandSql, connectionString, query.ColumnNames, GetInterceptor(type));
 						  }
 						}
         }

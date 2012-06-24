@@ -798,5 +798,25 @@ namespace SubSonic.Extensions
             var result = Regex.IsMatch(sourceString, regEx);
             return result;
         }
+
+        public static string UntilLast(this string text, string searchText)
+        {
+            int pos = text.LastIndexOf(searchText);
+
+            if (pos >= 0)
+                return text.Substring(0, pos);
+
+            return text;
+        }
+
+        public static string Until(this string text, string searchText)
+        {
+            int pos = text.IndexOf(searchText);
+
+            if (pos >= 0)
+                return text.Substring(0, pos);
+
+            return text;
+        }
     }
 }
