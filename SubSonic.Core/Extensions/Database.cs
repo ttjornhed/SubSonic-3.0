@@ -149,22 +149,28 @@ namespace SubSonic.Extensions
             PropertyInfo[] cachedProps = iType.GetProperties();
             FieldInfo[] cachedFields = iType.GetFields();
 
+            // Avoid enumerating properties looking for matching name (which performs rather poorly on large columns sets)
+            var cachedPropsByLowerName = cachedProps.ToDictionary(x => x.Name.ToLower(), x => x);
+            var cachedFieldsByLowerName = cachedFields.ToDictionary(x => x.Name.ToLower(), x => x);
+            var columnNamesLower = ColumnNames.Select(x => x.ToLower()).ToList();
+
             PropertyInfo currentProp;
             FieldInfo currentField = null;
 
             for(int i = 0; i < rdr.FieldCount; i++)
             {
                 string pName = rdr.GetName(i);
-                currentProp = cachedProps.SingleOrDefault(x => x.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
+                string pNameLower = pName.ToLower();
+
+                cachedPropsByLowerName.TryGetValue(pNameLower, out currentProp);
 
 				//mike if the property is null and ColumnNames has data then look in ColumnNames for match
-				if (currentProp == null && ColumnNames != null && ColumnNames.Count > i) {
-					currentProp = cachedProps.First(x => x.Name == ColumnNames[i]);
-				}
+				if (currentProp == null && ColumnNames != null && ColumnNames.Count > i)
+                    cachedPropsByLowerName.TryGetValue(columnNamesLower[i], out currentProp);
                 
 				//if the property is null, likely it's a Field
-				if(currentProp == null)
-                    currentField = cachedFields.SingleOrDefault(x => x.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
+				if (currentProp == null)
+				    cachedFieldsByLowerName.TryGetValue(pNameLower, out currentField);
 
                 if(currentProp != null && !DBNull.Value.Equals(rdr.GetValue(i)))
                 {
@@ -314,6 +320,7 @@ namespace SubSonic.Extensions
 				{
 					//mike added ColumnNames
 					List<T> result = new List<T>();
+
 					while (rdr.Read())
 					{
 						T instance = default(T);
@@ -349,17 +356,17 @@ namespace SubSonic.Extensions
 						}
 						else
 						{
-							instance = Activator.CreateInstance<T>();
+                            instance = Activator.CreateInstance<T>();
 
-							if (onItemCreated != null)
-							{
-								instance = (T)onItemCreated(instance);
-							}
+                            if (onItemCreated != null)
+                            {
+                                instance = (T)onItemCreated(instance);
+                            }
 
-							//do we have a parameterless constructor?
-							Load(rdr, instance, columnNames);//mike added ColumnNames
-							result.Add(instance);
-						}
+                            //do we have a parameterless constructor?
+                            Load(rdr, instance, columnNames);//mike added ColumnNames
+                            result.Add(instance);
+                        }
 					}
 
 					return result;
