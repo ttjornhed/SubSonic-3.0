@@ -15,7 +15,10 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
+using PetaPoco;
 using SubSonic.DataProviders;
 using SubSonic.Query;
 using SubSonic.Schema;
@@ -149,22 +152,32 @@ namespace SubSonic.Extensions
             PropertyInfo[] cachedProps = iType.GetProperties();
             FieldInfo[] cachedFields = iType.GetFields();
 
+            // Avoid enumerating properties looking for matching name (performs poorly on large result sets)
+            Dictionary<string, PropertyInfo> cachedPropsByLowerName = cachedProps.ToDictionary(x => x.Name.ToLower(), x => x);
+            Dictionary<string, FieldInfo> cachedFieldsByLowerName = cachedFields.ToDictionary(x => x.Name.ToLower(), x => x);
+            List<string> columnNamesLower = ColumnNames.Select(x => x.ToLower()).ToList();
+
             PropertyInfo currentProp;
             FieldInfo currentField = null;
 
             for(int i = 0; i < rdr.FieldCount; i++)
             {
                 string pName = rdr.GetName(i);
-                currentProp = cachedProps.SingleOrDefault(x => x.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
+                string pNameLower = pName.ToLower();
+
+                //currentProp = cachedProps.SingleOrDefault(x => x.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
+                cachedPropsByLowerName.TryGetValue(pNameLower, out currentProp);
 
 				//mike if the property is null and ColumnNames has data then look in ColumnNames for match
 				if (currentProp == null && ColumnNames != null && ColumnNames.Count > i) {
-					currentProp = cachedProps.First(x => x.Name == ColumnNames[i]);
+                    //currentProp = cachedProps.First(x => x.Name == ColumnNames[i]);
+                    cachedPropsByLowerName.TryGetValue(columnNamesLower[i], out currentProp);
 				}
                 
 				//if the property is null, likely it's a Field
-				if(currentProp == null)
-                    currentField = cachedFields.SingleOrDefault(x => x.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
+				if (currentProp == null)
+				    cachedFieldsByLowerName.TryGetValue(pNameLower, out currentField);
+                    //currentField = cachedFields.SingleOrDefault(x => x.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
 
                 if(currentProp != null && !DBNull.Value.Equals(rdr.GetValue(i)))
                 {
@@ -284,24 +297,30 @@ namespace SubSonic.Extensions
         /// </returns>
         private static bool IsCoreSystemType(Type type)
         {
-            return type == typeof(string) ||
-                   type == typeof(Int16) ||
-                   type == typeof(Int16?) ||
-                   type == typeof(Int32) ||
-                   type == typeof(Int32?) ||
-                   type == typeof(Int64) ||
-                   type == typeof(Int64?) ||
-                   type == typeof(decimal) ||
-                   type == typeof(decimal?) ||
-                   type == typeof(double) ||
-                   type == typeof(double?) ||
-                   type == typeof(DateTime) ||
-                   type == typeof(DateTime?) ||
-                   type == typeof(Guid) ||
-                   type == typeof(Guid?) ||
-                   type == typeof(bool) ||
-                   type == typeof(bool?);
+            return coreSystemTypes.Contains(type);
         }
+
+        private static readonly HashSet<Type> coreSystemTypes =
+            new HashSet<Type>
+                {
+                    typeof (string),
+                    typeof (Int16),
+                    typeof (Int16?),
+                    typeof (Int32),
+                    typeof (Int32?),
+                    typeof (Int64),
+                    typeof (Int64?),
+                    typeof (decimal),
+                    typeof (decimal?),
+                    typeof (double),
+                    typeof (double?),
+                    typeof (DateTime),
+                    typeof (DateTime?),
+                    typeof (Guid),
+                    typeof (Guid?),
+                    typeof (bool),
+                    typeof (bool?)
+                };
 
         /// <summary>
         /// Coerces an IDataReader to load an enumerable of T
@@ -310,60 +329,77 @@ namespace SubSonic.Extensions
         /// <param name="rdr"></param>
         /// <param name="columnNames"></param>
         /// <param name="onItemCreated">Invoked when a new item is created</param>
-				public static IEnumerable<T> ToEnumerable<T>(this IDataReader rdr, List<string> columnNames, Func<object, object> onItemCreated)
+		public static IEnumerable<T> ToEnumerable<T>(this IDataReader rdr, string sql, string connString, List<string> columnNames, Func<object, object> onItemCreated)
+		{
+			//mike added ColumnNames
+			List<T> result = new List<T>();
+
+            // PetaPoco code for faster object hydration...
+            PetaPoco.Database.PocoData pd = null;
+            Func<IDataReader, T> factory = null;
+                            
+			while (rdr.Read())
+			{
+				T instance = default(T);
+				var type = typeof(T);
+				if (type.Name.Contains("AnonymousType"))
 				{
-					//mike added ColumnNames
-					List<T> result = new List<T>();
-					while (rdr.Read())
+
+					//this is an anon type and it has read-only fields that are set
+					//in a constructor. So - read the fields and build it
+					//http://stackoverflow.com/questions/478013/how-do-i-create-and-access-a-new-instance-of-an-anonymous-class-passed-as-a-param
+					var properties = type.GetProperties();
+					int objIdx = 0;
+					object[] objArray = new object[properties.Length];
+
+					foreach (var prop in properties)
 					{
-						T instance = default(T);
-						var type = typeof(T);
-						if (type.Name.Contains("AnonymousType"))
-						{
-
-							//this is an anon type and it has read-only fields that are set
-							//in a constructor. So - read the fields and build it
-							//http://stackoverflow.com/questions/478013/how-do-i-create-and-access-a-new-instance-of-an-anonymous-class-passed-as-a-param
-							var properties = type.GetProperties();
-							int objIdx = 0;
-							object[] objArray = new object[properties.Length];
-
-							foreach (var prop in properties)
-							{
-								objArray[objIdx++] = rdr[prop.Name];
-							}
-
-							result.Add((T)Activator.CreateInstance(type, objArray));
-						}
-						//TODO: there has to be a better way to work with the type system
-						else if (IsCoreSystemType(type))
-						{
-							instance = (T)rdr.GetValue(0).ChangeTypeTo(type);
-							result.Add(instance);
-						}
-						else if (type.IsValueType)
-						{
-							instance = Activator.CreateInstance<T>();
-							LoadValueType(rdr, ref instance);
-							result.Add(instance);
-						}
-						else
-						{
-							instance = Activator.CreateInstance<T>();
-
-							if (onItemCreated != null)
-							{
-								instance = (T)onItemCreated(instance);
-							}
-
-							//do we have a parameterless constructor?
-							Load(rdr, instance, columnNames);//mike added ColumnNames
-							result.Add(instance);
-						}
+						objArray[objIdx++] = rdr[prop.Name];
 					}
 
-					return result;
+					result.Add((T)Activator.CreateInstance(type, objArray));
 				}
+				//TODO: there has to be a better way to work with the type system
+				else if (IsCoreSystemType(type))
+				{
+					instance = (T)rdr.GetValue(0).ChangeTypeTo(type);
+					result.Add(instance);
+				}
+				else if (type.IsValueType)
+				{
+					instance = Activator.CreateInstance<T>();
+					LoadValueType(rdr, ref instance);
+					result.Add(instance);
+				}
+				else
+				{
+                    // ===========================================
+                    //      PetaPoco to the performance rescue
+                    // -------------------------------------------
+                    if (pd == null)
+                        pd = PetaPoco.Database.PocoData.ForType(typeof(T));
+
+                    if (factory == null)
+                    {
+                        if (columnNames != null && columnNames.Count > 0)
+                            // Trim the SQL to last WHERE clause (so that we can reuse the emitted IL for faster object hydration).
+                            // PetaPoco uses the (parameterized) SQL to distinguish between the factory methods, and with Linq
+                            // expression in Subsonic, the full SQL is not unique (parameter values are generated inline in the SQL).
+                            // Using this SQL untouched would result in new factories being created for every query with a WHERE clause,
+                            // which would probably actually hurt overall performance.
+                            factory = pd.GetFactory(sql.UntilLast("WHERE"), connString, false, 0, rdr.FieldCount, rdr, columnNames) as Func<IDataReader, T>;
+                        else
+                            factory = pd.GetFactory(sql, connString, false, 0, rdr.FieldCount, rdr) as Func<IDataReader, T>;
+                    }
+
+                    T poco = factory(rdr);
+                    result.Add(poco);
+                    // ===========================================
+                }
+			}
+
+			return result;
+		}
 
         public static List<T> ToList<T>(this IDataReader rdr) where T : new()
         {
