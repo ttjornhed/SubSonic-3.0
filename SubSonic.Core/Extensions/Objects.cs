@@ -161,9 +161,17 @@ namespace SubSonic.Extensions
         	       type.IsEnum || IsNullableEnum(type);
         }
 
+        private static Dictionary<Type, Type> enumTypesByType = new Dictionary<Type, Type>();
+
     	internal static bool IsNullableEnum(Type type)
     	{
-    		var enumType = Nullable.GetUnderlyingType(type);
+    	    Type enumType;
+
+            if (!enumTypesByType.TryGetValue(type, out enumType))
+            {
+                enumType = Nullable.GetUnderlyingType(type);
+                enumTypesByType[type] = enumType;
+            }
 
 			return enumType != null && enumType.IsEnum;
     	}
