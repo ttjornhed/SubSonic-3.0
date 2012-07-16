@@ -33,6 +33,9 @@ httpd.parse.errors
 build
 build/*
 
+# Nuget packages
+packages
+packages/*
  
 # Exclude ALL DLLs? (
 # *.dll
