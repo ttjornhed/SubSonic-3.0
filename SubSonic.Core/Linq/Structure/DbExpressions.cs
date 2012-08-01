@@ -142,9 +142,8 @@ namespace SubSonic.Linq.Structure
 
         public bool Equals(ColumnExpression other)
         {
-            return other != null
-                && ((object)this) == (object)other
-                 || (alias == other.alias && name == other.Name);
+            return other != null && 
+                (((object)this == (object)other) || (alias == other.alias && name == other.Name));
         }
     }
 
