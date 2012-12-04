@@ -49,10 +49,10 @@ namespace SubSonic.Tests.Unit.DataProviders
                     var p3 = ProviderFactory.GetProvider(TestConfiguration.MsSql2008TestConnectionString, DbClientTypeName.MsSql);
                     var p4 = ProviderFactory.GetProvider(TestConfiguration.SQLiteTestsConnectionString, DbClientTypeName.SqlLite);
 
-                    Assert.Same(p1, p3);
-                    Assert.Same(p2, p4);
-                    Assert.NotSame(p1, p2);
-                    Assert.NotSame(p3, p4);
+                    Assert.Same(p1.CurrentSharedConnection, p3.CurrentSharedConnection);
+                    Assert.Same(p2.CurrentSharedConnection, p4.CurrentSharedConnection);
+                    Assert.NotSame(p1.CurrentSharedConnection, p2.CurrentSharedConnection);
+                    Assert.NotSame(p3.CurrentSharedConnection, p4.CurrentSharedConnection);
                 }
             }
         }
