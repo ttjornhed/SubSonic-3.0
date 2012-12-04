@@ -78,11 +78,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataProviders\SharedConnectionScopeTests.cs" />
     <Compile Include="DbClientTypeName.cs" />
+    <Compile Include="Linq\MemoryTests.cs" />
+    <Compile Include="Linq\OracleTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Linq\SqlStrings\IDateTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\INumberTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\ISelectTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\IStringTestsSql.cs" />
+    <Compile Include="Linq\SqlStrings\OracleDateTestsSql.cs" />
+    <Compile Include="Linq\SqlStrings\OracleNumberTestsSql.cs" />
+    <Compile Include="Linq\SqlStrings\OracleStringTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2005DateTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2005NumberTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2005SelectTestsSql.cs" />
@@ -91,8 +99,8 @@
     <Compile Include="Linq\SqlStrings\Sql2008NumberTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2008SelectTestsSql.cs" />
     <Compile Include="Linq\SqlStrings\Sql2008StringTestsSql.cs" />
+    <Compile Include="Linq\TestBases\MemTestDB.cs" />
     <Compile Include="Linq\TestBases\DateTests.cs" />
-    <Compile Include="Linq\TestBases\Extensions.cs" />
     <Compile Include="Linq\TestBases\NumberTests.cs" />
     <Compile Include="Linq\TestBases\SelectTests.cs" />
     <Compile Include="Extensions\DatabaseTests.cs" />
@@ -153,6 +161,9 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Linq\SqlStrings\OracleSelectTestsSql.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
