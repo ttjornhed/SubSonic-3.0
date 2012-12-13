@@ -164,7 +164,9 @@ namespace SubSonic.Extensions
             // Avoid enumerating properties looking for matching name (performs poorly on large result sets)
             Dictionary<string, PropertyInfo> cachedPropsByLowerName = cachedProps.ToDictionary(x => x.Name.ToLower(), x => x);
             Dictionary<string, FieldInfo> cachedFieldsByLowerName = cachedFields.ToDictionary(x => x.Name.ToLower(), x => x);
-            List<string> columnNamesLower = ColumnNames.Select(x => x.ToLower()).ToList();
+            List<string> columnNamesLower = ColumnNames == null
+                                                ? new List<string>()
+                                                : ColumnNames.Select(x => x.ToLower()).ToList();
 
             PropertyInfo currentProp;
             FieldInfo currentField = null;
