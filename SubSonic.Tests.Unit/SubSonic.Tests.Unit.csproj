@@ -80,6 +80,15 @@
   <ItemGroup>
     <Compile Include="DataProviders\SharedConnectionScopeTests.cs" />
     <Compile Include="DbClientTypeName.cs" />
+    <Compile Include="Linq\DataProviderOverrides\ExpectedSqlStrings\ISqlStrings.cs" />
+    <Compile Include="Linq\DataProviderOverrides\ExpectedSqlStrings\MsSqlServerSqlStrings.cs" />
+    <Compile Include="Linq\DataProviderOverrides\ExpectedSqlStrings\OracleSqlStrings.cs" />
+    <Compile Include="Linq\DataProviderOverrides\OracleTests.cs" />
+    <Compile Include="Linq\DataProviderOverrides\MsSqlServerTests.cs" />
+    <Compile Include="Linq\DataProviderOverrides\TestBases\DataProviderOverridesTestBase.cs" />
+    <Compile Include="Linq\DataProviderOverrides\TestBases\SqlStringTests.cs" />
+    <Compile Include="Linq\DataProviderOverrides\TestBases\TestClasses\Order.cs" />
+    <Compile Include="Linq\DataProviderOverrides\TestBases\TestDb.cs" />
     <Compile Include="Linq\MemoryTests.cs" />
     <Compile Include="Linq\OracleTests.cs">
       <SubType>Code</SubType>
@@ -113,6 +122,7 @@
     <Compile Include="Linq\SQL2008Tests.cs" />
     <Compile Include="Linq\SQLiteTests.cs" />
     <Compile Include="Linq\TestBases\Setup.cs" />
+    <Compile Include="Linq\TestBases\SqlStringTestsBase.cs" />
     <Compile Include="Linq\TestBases\TestDB.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Linq\TestBases\StringTests.cs" />
@@ -165,6 +175,7 @@
   <ItemGroup>
     <Compile Include="Linq\SqlStrings\OracleSelectTestsSql.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
