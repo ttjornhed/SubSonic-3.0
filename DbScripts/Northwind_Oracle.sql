@@ -1,18 +1,23 @@
 -- Start of DDL Script for Table NWIND.CATEGORIES
 -- Generated 19/01/07 19:41:29 from NWIND@INTELLIZ
 /**
-DROP TABLE categories PURGE;
-DROP TABLE customers PURGE;
-DROP TABLE employees PURGE;
-DROP TABLE employeeterritories PURGE;
-DROP TABLE orders PURGE;
-DROP TABLE orderdetails PURGE;
-DROP TABLE products PURGE;
-DROP TABLE region PURGE;
-DROP TABLE products PURGE;
-DROP TABLE shippers PURGE;
-DROP TABLE suppliers PURGE;
-DROP TABLE territories PURGE;
+DROP TABLE categories CASCADE CONSTRAINTS PURGE;
+DROP TABLE customers CASCADE CONSTRAINTS PURGE;
+DROP TABLE employees CASCADE CONSTRAINTS PURGE;
+DROP TABLE employeeterritories CASCADE CONSTRAINTS PURGE;
+DROP TABLE orders CASCADE CONSTRAINTS PURGE;
+DROP TABLE orderdetails CASCADE CONSTRAINTS PURGE;
+DROP TABLE products CASCADE CONSTRAINTS PURGE;
+DROP TABLE region CASCADE CONSTRAINTS PURGE;
+DROP TABLE products CASCADE CONSTRAINTS PURGE;
+DROP TABLE shippers CASCADE CONSTRAINTS PURGE;
+DROP TABLE suppliers CASCADE CONSTRAINTS PURGE;
+DROP TABLE territories CASCADE CONSTRAINTS PURGE;
+
+drop sequence SEQ_EMPLOYEES;
+drop sequence SEQ_ORDERS;
+drop sequence SEQ_PRODUCTS;
+drop sequence SEQ_SUPPLIERS;
 **/
 
 CREATE TABLE categories
@@ -407,6 +412,7 @@ BEGIN
    :NEW.orderid := max_orderid;
 END;
 /
+
 CREATE TABLE region
     (regid   NUMBER(10,0) NOT NULL, regname VARCHAR2(20) NOT NULL)
   PCTFREE     10
@@ -420,6 +426,7 @@ CREATE TABLE region
     MAXEXTENTS  2147483645
     )
 /
+
 ALTER TABLE region
 ADD CONSTRAINT pk_region PRIMARY KEY(regid)
 USING INDEX
@@ -433,6 +440,7 @@ USING INDEX
     MAXEXTENTS  2147483645
   )
 /
+
 CREATE TABLE territories 
 	(territoryid NUMBER(10,0) NOT NULL,
 	territorydescription varchar2 (50) NOT NULL ,
@@ -448,6 +456,7 @@ CREATE TABLE territories
     MAXEXTENTS  2147483645
     )
 /
+
 ALTER TABLE territories
 ADD CONSTRAINT pk_territories PRIMARY KEY(territoryid)
 ADD CONSTRAINT fk1_territories FOREIGN KEY (regionid)
@@ -485,6 +494,7 @@ ALTER TABLE employeeterritories
 ADD CONSTRAINT fk2_employeeterritories FOREIGN KEY (territoryid)
 REFERENCES territories (territoryid)
 /
+
 -- End of DDL script for Foreign Key(s)
 -- Start of DDL Script for Table NWIND.PRODUCTS
 -- Generated 19/01/07 19:41:31 from NWIND@INTELLIZ
@@ -570,10 +580,12 @@ ALTER TABLE products
 ADD CONSTRAINT fk_products FOREIGN KEY (categoryid)
 REFERENCES categories (categoryid)
 /
+
 ALTER TABLE orderdetails
 ADD CONSTRAINT fk1_orders_details FOREIGN KEY (productid)
 REFERENCES products (productid)
 /
+
 -- End of DDL script for Foreign Key(s)
 -- Start of DDL Script for Table NWIND.SHIPPERS
 -- Generated 19/01/07 19:41:32 from NWIND@INTELLIZ
@@ -617,6 +629,7 @@ ALTER TABLE orders
 ADD CONSTRAINT fk3_orders FOREIGN KEY (shipvia)
 REFERENCES shippers (shipperid)
 /
+
 -- End of DDL Script for Table NWIND.SHIPPERS
 
 -- Start of DDL Script for Table NWIND.SUPPLIERS
