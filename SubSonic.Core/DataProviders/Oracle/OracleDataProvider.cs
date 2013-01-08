@@ -47,30 +47,6 @@ namespace SubSonic.DataProviders.Oracle {
             get { return ":"; }
         }
 
-        protected override DbType CoerceDbType(DbType dataType)
-        {
-            switch (dataType)
-            {
-                case DbType.Guid:
-                    return OracleGuidHandlingStrategy.DbType;
-                default:
-                    return base.CoerceDbType(dataType);
-            }
-        }
-
-        protected override object CoerceValue(Query.QueryParameter param)
-        {
-            if (param.ParameterValue == null)
-                return DBNull.Value;
-            switch (param.DataType)
-            {
-                case DbType.Guid:
-                    return OracleGuidHandlingStrategy.CoerceValue(param.ParameterValue);
-                default:
-                    return param.ParameterValue;
-            }
-        }
-
         #region Shared connection and transaction handling
 
         [ThreadStatic]

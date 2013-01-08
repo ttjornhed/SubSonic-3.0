@@ -79,7 +79,7 @@ namespace SubSonic.Tests.Repositories
         }
 
         [Fact]
-        public void imple_Repo_Should_Create_Schema_And_Save_Shwerko()
+        public void Simple_Repo_Should_Create_Schema_And_Save_Shwerko()
         {
             var id = Guid.NewGuid();
             var item = CreateTestRecord(id);

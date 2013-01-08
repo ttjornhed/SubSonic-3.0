@@ -469,7 +469,7 @@ namespace SubSonic.DataProviders
                     DbParameter p = cmd.CreateParameter();
                     p.ParameterName = param.ParameterName;
                     p.Direction = param.Mode;
-                    p.DbType = CoerceDbType(param.DataType);
+                    p.DbType = ConvertDataTypeToDbType(param.DataType);
 
                     //output parameters need to define a size
                     //our default is 50
@@ -477,28 +477,11 @@ namespace SubSonic.DataProviders
                         p.Size = param.Size;
 
                     //fix for NULLs as parameter values
-                    p.Value = param.ParameterValue == null ? DBNull.Value : CoerceValue(param);
+                    p.Value = ConvertDataValueForThisProvider(param.ParameterValue ?? DBNull.Value);
 
                     cmd.Parameters.Add(p);
                 }
             }
-        }
-
-        protected virtual object CoerceValue(QueryParameter param)
-        {
-            if (param.DataType != DbType.Guid)
-                return param.ParameterValue;
-            var paramValue = param.ParameterValue.ToString();
-            if (String.IsNullOrEmpty(paramValue))
-                return DBNull.Value;
-            if (!paramValue.Equals("DEFAULT", StringComparison.InvariantCultureIgnoreCase))
-                return new Guid(paramValue);
-            return DBNull.Value;
-        }
-
-        protected virtual DbType CoerceDbType(DbType dataType)
-        {
-            return dataType;
         }
 
         public DbConnection CreateConnection(string connectionString)

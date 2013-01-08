@@ -33,7 +33,6 @@ namespace SubSonic.Tests.Linq
         public OracleSelectTests()
         {
             _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
-            OracleGuidHandlingStrategy.GuidStringFormat = "D";
             var setup = new Setup(_db.Provider);
             setup.DropTestTables();
             setup.CreateTestTable();
