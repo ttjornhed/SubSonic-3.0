@@ -80,7 +80,6 @@
   <ItemGroup>
     <Compile Include="DataProviders\SharedConnectionScopeTests.cs" />
     <Compile Include="DbClientTypeName.cs" />
-    <Compile Include="DbTypeCoercion\OracleGuidHandlingStrategyTests.cs" />
     <Compile Include="Linq\DataProviderOverrides\ExpectedSqlStrings\ISqlStrings.cs" />
     <Compile Include="Linq\DataProviderOverrides\ExpectedSqlStrings\MsSqlServerSqlStrings.cs" />
     <Compile Include="Linq\DataProviderOverrides\ExpectedSqlStrings\OracleSqlStrings.cs" />
@@ -176,7 +175,9 @@
   <ItemGroup>
     <Compile Include="Linq\SqlStrings\OracleSelectTestsSql.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="DbTypeCoercion\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
