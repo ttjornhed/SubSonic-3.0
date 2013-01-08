@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Data;
 using SubSonic.Linq.Structure;
 using SubSonic.Query;
 using SubSonic.Schema;
-using SubSonic.SqlGeneration;
-using SubSonic.SqlGeneration.Schema;
-using SubSonic.DataProviders;
 using System.Data.Common;
 
 namespace SubSonic.DataProviders.Oracle {
@@ -50,6 +45,30 @@ namespace SubSonic.DataProviders.Oracle {
         new public string ParameterPrefix
         {
             get { return ":"; }
+        }
+
+        protected override DbType CoerceDbType(DbType dataType)
+        {
+            switch (dataType)
+            {
+                case DbType.Guid:
+                    return OracleGuidHandlingStrategy.DbType;
+                default:
+                    return base.CoerceDbType(dataType);
+            }
+        }
+
+        protected override object CoerceValue(Query.QueryParameter param)
+        {
+            if (param.ParameterValue == null)
+                return DBNull.Value;
+            switch (param.DataType)
+            {
+                case DbType.Guid:
+                    return OracleGuidHandlingStrategy.CoerceValue(param.ParameterValue);
+                default:
+                    return param.ParameterValue;
+            }
         }
 
         #region Shared connection and transaction handling

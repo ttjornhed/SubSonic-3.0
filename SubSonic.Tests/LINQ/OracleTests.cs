@@ -1,4 +1,5 @@
 ﻿using SubSonic.DataProviders;
+using SubSonic.DataProviders.Oracle;
 using SubSonic.Tests.Linq;
 using SubSonic.Tests.Linq.TestBases;
 using Xunit;
@@ -32,6 +33,7 @@ namespace SubSonic.Tests.Linq
         public OracleSelectTests()
         {
             _db = new TestDB(TestConfiguration.OracleTestConnectionString, DbClientTypeName.OracleDataAccess);
+            OracleGuidHandlingStrategy.GuidStringFormat = "D";
             var setup = new Setup(_db.Provider);
             setup.DropTestTables();
             setup.CreateTestTable();

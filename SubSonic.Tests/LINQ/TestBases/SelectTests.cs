@@ -78,7 +78,8 @@ namespace SubSonic.Tests.Linq
         [Fact]
         public void Select_Using_Guid_Parameter()
         {
-            Assert.True(_db.Products.Where(product => product.Sku != Guid.Empty).ToList().Any());
+            var retrievedProduct = _db.Products.First();
+            Assert.True(_db.Products.Where(product => product.Sku == retrievedProduct.Sku).ToList().Any());
         }
 
         [Fact]

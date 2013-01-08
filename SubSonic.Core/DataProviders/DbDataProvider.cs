@@ -460,7 +460,7 @@ namespace SubSonic.DataProviders
         /// </summary>
         /// <param name="cmd">The CMD.</param>
         /// <param name="qry">The qry.</param>
-        private static void AddParams(DbCommand cmd, QueryCommand qry)
+        private void AddParams(DbCommand cmd, QueryCommand qry)
         {
             if(qry.Parameters != null)
             {
@@ -469,7 +469,7 @@ namespace SubSonic.DataProviders
                     DbParameter p = cmd.CreateParameter();
                     p.ParameterName = param.ParameterName;
                     p.Direction = param.Mode;
-                    p.DbType = param.DataType;
+                    p.DbType = CoerceDbType(param.DataType);
 
                     //output parameters need to define a size
                     //our default is 50
@@ -477,27 +477,28 @@ namespace SubSonic.DataProviders
                         p.Size = param.Size;
 
                     //fix for NULLs as parameter values
-                    if(param.ParameterValue == null)
-                    {
-                        p.Value = DBNull.Value;
-                    }
-                    else if(param.DataType == DbType.Guid)
-                    {
-                        string paramValue = param.ParameterValue.ToString();
-                        if (!String.IsNullOrEmpty(paramValue))
-                        {
-                            if(!paramValue.Equals("DEFAULT", StringComparison.InvariantCultureIgnoreCase))
-                                p.Value = new Guid(paramValue);
-                        }
-                        else
-                            p.Value = DBNull.Value;
-                    }
-                    else
-                        p.Value = param.ParameterValue;
+                    p.Value = param.ParameterValue == null ? DBNull.Value : CoerceValue(param);
 
                     cmd.Parameters.Add(p);
                 }
             }
+        }
+
+        protected virtual object CoerceValue(QueryParameter param)
+        {
+            if (param.DataType != DbType.Guid)
+                return param.ParameterValue;
+            var paramValue = param.ParameterValue.ToString();
+            if (String.IsNullOrEmpty(paramValue))
+                return DBNull.Value;
+            if (!paramValue.Equals("DEFAULT", StringComparison.InvariantCultureIgnoreCase))
+                return new Guid(paramValue);
+            return DBNull.Value;
+        }
+
+        protected virtual DbType CoerceDbType(DbType dataType)
+        {
+            return dataType;
         }
 
         public DbConnection CreateConnection(string connectionString)
