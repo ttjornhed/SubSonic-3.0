@@ -9,7 +9,7 @@ namespace SubSonic.DataProviders.Oracle
         private static readonly OracleGuidHandlingStrategy Instance = new OracleGuidHandlingStrategy();
         private DbType _dbType = DbType.String;
         private string _guidStringFormat = "N";
-        private static readonly List<string> ValidGuidStringFormats = new List<string>(new []{"N", "D", "B", "P", "X"}); 
+        private static readonly List<string> ValidGuidStringFormats = new List<string>(new []{"N", "D", "B", "P"}); 
 
         private OracleGuidHandlingStrategy()
         {
@@ -33,7 +33,7 @@ namespace SubSonic.DataProviders.Oracle
 
         public static String ToString(Guid guid)
         {
-            return guid.ToString();
+            return guid.ToString(Instance._guidStringFormat);
         }
 
         public static object CoerceValue(object value)

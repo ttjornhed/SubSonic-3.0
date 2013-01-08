@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="DataProviders\SharedConnectionScopeTests.cs" />
     <Compile Include="DbClientTypeName.cs" />
+    <Compile Include="DbTypeCoercion\OracleGuidHandlingStrategyTests.cs" />
     <Compile Include="Linq\DataProviderOverrides\ExpectedSqlStrings\ISqlStrings.cs" />
     <Compile Include="Linq\DataProviderOverrides\ExpectedSqlStrings\MsSqlServerSqlStrings.cs" />
     <Compile Include="Linq\DataProviderOverrides\ExpectedSqlStrings\OracleSqlStrings.cs" />
