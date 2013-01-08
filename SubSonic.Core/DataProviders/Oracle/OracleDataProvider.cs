@@ -1,58 +1,67 @@
 ﻿using System;
-using System.Data;
 using SubSonic.Linq.Structure;
 using SubSonic.Query;
 using SubSonic.Schema;
 using System.Data.Common;
 
-namespace SubSonic.DataProviders.Oracle {
-	public class OracleDataProvider : DbDataProvider,IDataProvider {
+namespace SubSonic.DataProviders.Oracle
+{
+    public class OracleDataProvider : DbDataProvider, IDataProvider
+    {
+        private const string InsertionIdentityFetchStringValue = "";
 
-        private string _InsertionIdentityFetchString = "";
-        public override string InsertionIdentityFetchString { get { return _InsertionIdentityFetchString; } }
+        public override string InsertionIdentityFetchString
+        {
+            get { return InsertionIdentityFetchStringValue; }
+        }
 
         public OracleDataProvider(string connectionString, string providerName)
             : base(connectionString, providerName)
-        {}
+        {
+        }
 
-		public override ISchemaGenerator SchemaGenerator {
-			get { return new OracleSchema(); }
-		}
-
-
-		public override ISqlGenerator GetSqlGenerator(SqlQuery query) {
-			return new OracleGenerator(query);
-		}
+        public override ISchemaGenerator SchemaGenerator
+        {
+            get { return new OracleSchema(); }
+        }
 
 
-		public override string QualifyTableName(ITable tbl) {
-			string qualifiedFormat = String.IsNullOrEmpty(tbl.SchemaName) ? "{1}" : "{0}.{1}";
-			return String.Format(qualifiedFormat, tbl.SchemaName, tbl.Name);
-		}
+        public override ISqlGenerator GetSqlGenerator(SqlQuery query)
+        {
+            return new OracleGenerator(query);
+        }
 
-		public override string QualifyColumnName(IColumn column) {
-			string qualifiedFormat = String.IsNullOrEmpty(column.SchemaName) ? "{1}.{2}" : "{0}.{1}.{2}";
-			return String.Format(qualifiedFormat, column.Table.SchemaName, column.Table.Name, column.Name);
-		}
 
-		public override string QualifySPName(IStoredProcedure sp) {
-			string qualifiedFormat = String.IsNullOrEmpty(sp.SchemaName) ? "\"{1}\"" : "\"{0}\".\"{1}\"";
-			return String.Format(qualifiedFormat, sp.SchemaName, sp.Name);
-		}
+        public override string QualifyTableName(ITable tbl)
+        {
+            string qualifiedFormat = String.IsNullOrEmpty(tbl.SchemaName) ? "{1}" : "{0}.{1}";
+            return String.Format(qualifiedFormat, tbl.SchemaName, tbl.Name);
+        }
 
-        public override IQueryLanguage QueryLanguage { get { return new OracleLanguage(this); } }
+        public override string QualifyColumnName(IColumn column)
+        {
+            string qualifiedFormat = String.IsNullOrEmpty(column.SchemaName) ? "{1}.{2}" : "{0}.{1}.{2}";
+            return String.Format(qualifiedFormat, column.Table.SchemaName, column.Table.Name, column.Name);
+        }
 
-        new public string ParameterPrefix
+        public override string QualifySPName(IStoredProcedure sp)
+        {
+            string qualifiedFormat = String.IsNullOrEmpty(sp.SchemaName) ? "\"{1}\"" : "\"{0}\".\"{1}\"";
+            return String.Format(qualifiedFormat, sp.SchemaName, sp.Name);
+        }
+
+        public override IQueryLanguage QueryLanguage
+        {
+            get { return new OracleLanguage(this); }
+        }
+
+        public new string ParameterPrefix
         {
             get { return ":"; }
         }
 
-        #region Shared connection and transaction handling
-
-        [ThreadStatic]
-        private static DbConnection __sharedConnection;
-        [ThreadStatic]
-        private static DbTransaction __sharedTransaction;
+        [ThreadStatic] private static DbConnection _sharedConnection;
+        [ThreadStatic] private static DbTransaction _sharedTransaction;
 
         /// <summary>
         /// Gets or sets the current shared connection.
@@ -60,52 +69,50 @@ namespace SubSonic.DataProviders.Oracle {
         /// <value>The current shared connection.</value>
         public override DbConnection CurrentSharedConnection
         {
-            get { return __sharedConnection; }
+            get { return _sharedConnection; }
 
             protected set
             {
                 if (value == null)
                 {
-                    if (__sharedConnection != null)
+                    if (_sharedConnection != null)
                     {
-                        __sharedConnection.Dispose();
-                        __sharedConnection = null;
+                        _sharedConnection.Dispose();
+                        _sharedConnection = null;
                     }
                 }
                 else
                 {
-                    __sharedConnection = value;
-                    __sharedConnection.Disposed += __sharedConnection_Disposed;
+                    _sharedConnection = value;
+                    _sharedConnection.Disposed += SharedConnectionDisposed;
                 }
             }
         }
 
         public override DbTransaction CurrentSharedTransaction
         {
-            get { return __sharedTransaction; }
+            get { return _sharedTransaction; }
 
             set
             {
-                if (__sharedTransaction != null)
+                if (_sharedTransaction != null)
                 {
                     try
                     {
-                        __sharedTransaction.Dispose();
+                        _sharedTransaction.Dispose();
                     }
-                    catch
+                    catch (Exception)
                     {
-                        // ignore errors.
+                        Log.WriteLine("Pokemon Exception Caught!"); // ignore errors.
                     }
                 }
-                __sharedTransaction = value;
+                _sharedTransaction = value;
             }
         }
 
-        private static void __sharedConnection_Disposed(object sender, EventArgs e)
+        private static void SharedConnectionDisposed(object sender, EventArgs e)
         {
-            __sharedConnection = null;
+            _sharedConnection = null;
         }
-
-        #endregion
-	}
+    }
 }
