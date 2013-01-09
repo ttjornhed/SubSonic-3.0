@@ -19,38 +19,38 @@ using SubSonic.DataProviders.MySQL;
 using SubSonic.DataProviders.SQLite;
 using SubSonic.DataProviders.Oracle;
 using SubSonic.DataProviders.DB2;
-using System.Diagnostics;
 
 namespace SubSonic.DataProviders
 {
     public static class ProviderFactory
     {
-        private const string DEFAULT_DB_CLIENT_TYPE_NAME = "System.Data.SqlClient";
+        private const string DefaultDbClientTypeName = "System.Data.SqlClient";
 
-        private static Dictionary<string, Func<string, string, IDataProvider>> _factories = BuildDefaults();
+        private static readonly Dictionary<string, Func<string, string, IDataProvider>> Factories = BuildDefaults();
 
         private static Dictionary<string, Func<string, string, IDataProvider>> BuildDefaults()
         {
-            var defaults = new Dictionary<string, Func<string, string, IDataProvider>>();
+            var defaults = new Dictionary<string, Func<string, string, IDataProvider>>
+                {
+                    {"System.Data.SqlClient", (conn, provider) => new SqlServerProvider(conn, provider)},
+                    {"MySql.Data.MySqlClient", (conn, provider) => new MySqlProvider(conn, provider)},
+                    {"System.Data.SQLite", (conn, provider) => new SQLiteProvider(conn, provider)},
+                    {"System.Data.OracleClient", (conn, provider) => new OracleProvider(conn, provider)},
+                    {"Oracle.DataAccess.Client", (conn, provider) => new OracleDataAccessProvider(conn, provider)},
+                    {"IBM.Data.DB2", (conn, provider) => new DB2Provider(conn, provider)}
+                };
 
-            defaults.Add("System.Data.SqlClient", (conn, provider) => new SqlServerProvider(conn, provider));
-            defaults.Add("MySql.Data.MySqlClient", (conn, provider) => new MySqlProvider(conn, provider));
-            defaults.Add("System.Data.SQLite", (conn, provider) => new SQLiteProvider(conn, provider));
-            defaults.Add("System.Data.OracleClient", (conn, provider) => new OracleProvider(conn, provider));
-            defaults.Add("Oracle.DataAccess.Client", (conn, provider) => new OracleDataAccessProvider(conn, provider));
-            defaults.Add("IBM.Data.DB2", (conn, provider) => new DB2Provider(conn, provider));
-            
             return defaults;
         }
 
         public static void Register(string providerName, Func<string, string, IDataProvider> factoryMethod)
         {
-            if (_factories.ContainsKey(providerName))
+            if (Factories.ContainsKey(providerName))
             {
-                _factories.Remove(providerName);
+                Factories.Remove(providerName);
             }
 
-            _factories.Add(providerName, factoryMethod);
+            Factories.Add(providerName, factoryMethod);
         }
         
         public static IDataProvider GetProvider()
@@ -78,9 +78,9 @@ namespace SubSonic.DataProviders
         private static IDataProvider LoadProvider(string connectionString, string providerName)
         {
             if (String.IsNullOrEmpty(providerName))
-                providerName = DEFAULT_DB_CLIENT_TYPE_NAME;
+                providerName = DefaultDbClientTypeName;
 
-            var factory = _factories[providerName];
+            var factory = Factories[providerName];
 
             if (factory == null)
             {
