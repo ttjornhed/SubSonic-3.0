@@ -10,9 +10,9 @@ namespace SubSonic.DataProviders.DB2
     /// This data provider is for IBM DB2, using the IBM Data Server Client.
     /// The provider string is typically "IBM.Data.DB2"
     /// </summary>
-    public class DB2DataProvider : DbDataProvider
+    public class DB2Provider : DbDataProvider
     {
-        public DB2DataProvider(string connectionString, string providerName)
+        public DB2Provider(string connectionString, string providerName)
             : base(connectionString, providerName)
         {}
 
