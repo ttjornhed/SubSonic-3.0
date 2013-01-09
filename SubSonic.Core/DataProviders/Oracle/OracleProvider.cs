@@ -6,7 +6,7 @@ using System.Data.Common;
 
 namespace SubSonic.DataProviders.Oracle
 {
-    public class OracleDataProvider : DbDataProvider, IDataProvider
+    public class OracleProvider : DbDataProvider, IDataProvider
     {
         private const string InsertionIdentityFetchStringValue = "";
 
@@ -15,7 +15,7 @@ namespace SubSonic.DataProviders.Oracle
             get { return InsertionIdentityFetchStringValue; }
         }
 
-        public OracleDataProvider(string connectionString, string providerName)
+        public OracleProvider(string connectionString, string providerName)
             : base(connectionString, providerName)
         {
         }

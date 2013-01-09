@@ -4,7 +4,7 @@ using SubSonic.SqlGeneration.Schema;
 
 namespace SubSonic.Tests.Repositories.TestBases
 {
-    [SubSonicDataProviderTableNameOverride(typeof(OracleDataProvider), "NAIIWDS")]
+    [SubSonicDataProviderTableNameOverride(typeof(OracleProvider), "NAIIWDS")]
     public class NonAutoIncrementingIdWithDefaultSetting
     {
         [SubSonicPrimaryKey(false)]

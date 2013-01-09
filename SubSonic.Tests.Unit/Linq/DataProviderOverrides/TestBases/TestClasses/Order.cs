@@ -6,14 +6,14 @@ using SubSonic.SqlGeneration.Schema;
 namespace SubSonic.Tests.Unit.Linq.DataProviderOverrides.TestBases.TestClasses
 {
     [SubSonicDataProviderTableNameOverride(typeof(SqlServerProvider), "SqlServerOrders")]
-    [SubSonicDataProviderTableNameOverride(typeof(OracleDataProvider), "OracleOrders")]
+    [SubSonicDataProviderTableNameOverride(typeof(OracleProvider), "OracleOrders")]
     public class Order
     {
         [SubSonicPrimaryKey]
-        [SubSonicDataProviderColumnNameOverride(typeof(OracleDataProvider), "OID")]
+        [SubSonicDataProviderColumnNameOverride(typeof(OracleProvider), "OID")]
         public int OrderID { get; set; }
         public DateTime OrderDate { get; set; }
-        [SubSonicDataProviderColumnNameOverride(typeof(OracleDataProvider), "CID")]
+        [SubSonicDataProviderColumnNameOverride(typeof(OracleProvider), "CID")]
         public string CustomerID { get; set; }
         public DateTime? RequiredDate { get; set; }
         public DateTime? ShippedDate { get; set; }

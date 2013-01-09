@@ -36,9 +36,9 @@ namespace SubSonic.DataProviders
             defaults.Add("System.Data.SqlClient", (conn, provider) => new SqlServerProvider(conn, provider));
             defaults.Add("MySql.Data.MySqlClient", (conn, provider) => new MySqlProvider(conn, provider));
             defaults.Add("System.Data.SQLite", (conn, provider) => new SQLiteProvider(conn, provider));
-            defaults.Add("System.Data.OracleClient", (conn, provider) => new OracleDataProvider(conn, provider));
-            defaults.Add("Oracle.DataAccess.Client", (conn, provider) => new OracleDataProvider(conn, provider));
-            defaults.Add("IBM.Data.DB2", (conn, provider) => new DB2DataProvider(conn, provider));
+            defaults.Add("System.Data.OracleClient", (conn, provider) => new OracleProvider(conn, provider));
+            defaults.Add("Oracle.DataAccess.Client", (conn, provider) => new OracleDataAccessProvider(conn, provider));
+            defaults.Add("IBM.Data.DB2", (conn, provider) => new DB2Provider(conn, provider));
             
             return defaults;
         }
