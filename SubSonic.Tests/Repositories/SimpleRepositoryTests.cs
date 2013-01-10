@@ -519,14 +519,13 @@ namespace SubSonic.Tests.Repositories
         public void Simple_Repo_Should_Select_Anonymous_Types()
         {
             var key = Guid.NewGuid();
-            int id = (int)_repo.Add(CreateTestRecord(key));
+            _repo.Add(CreateTestRecord(key));
 
             var result = (from s in _repo.All<Shwerko>()
                          select new { ID = s.ID, Key = s.Key }).ToArray();
 
             Assert.Equal(1, result.Count());
             Assert.Equal(key, result[0].Key);
-            Assert.Equal(id, result[0].ID);
         }
 
         [Fact]
