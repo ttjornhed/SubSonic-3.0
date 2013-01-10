@@ -321,7 +321,7 @@ namespace SubSonic.Linq.Structure
                 //    column.Type
                 //    );
 
-                Expression value = Expression.Convert(Expression.Call(typeof (ValueTypeConverter),
+                Expression value = Expression.Convert(Expression.Call(typeof (ValueTypeConverterService),
                                                                       "ChangeType",
                                                                       null,
                                                                       Expression.Call(reader,

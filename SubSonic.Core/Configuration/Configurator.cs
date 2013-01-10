@@ -38,10 +38,10 @@ namespace SubSonic.Configuration
             var container = new WindsorContainer();
             _container =
                 container.Register(
-                    Classes.FromThisAssembly()
-                           .BasedOn(typeof (IValueTypeConverter<,>))
-                           .WithService.DefaultInterfaces()
-                           .LifestyleTransient());
+                    AllTypes.FromThisAssembly()
+                            .BasedOn(typeof (IValueTypeConverter<,>))
+                            .WithServiceAllInterfaces()
+                            .LifestyleTransient());
         }
     }
 }
