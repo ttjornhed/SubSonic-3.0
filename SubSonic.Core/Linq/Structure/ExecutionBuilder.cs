@@ -12,6 +12,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using SubSonic.Linq.Translation;
+using SubSonic.TypeConverters;
 
 namespace SubSonic.Linq.Structure
 {
@@ -297,7 +298,7 @@ namespace SubSonic.Linq.Structure
         {
             ParameterExpression reader;
             int iOrdinal;
-
+            
             if (scope.TryGetValue(column, out reader, out iOrdinal))
             {
                 Expression defvalue;
@@ -312,13 +313,25 @@ namespace SubSonic.Linq.Structure
 
                 // this sucks, but since we don't track true SQL types through the query, and ADO throws exception if you
                 // call the wrong accessor, the best we can do is call GetValue and Convert.ChangeType
-                Expression value = Expression.Convert(
-                    Expression.Call(typeof (Convert), "ChangeType", null,
-                                    Expression.Call(reader, "GetValue", null, Expression.Constant(iOrdinal)),
-                                    Expression.Constant(TypeHelper.GetNonNullableType(column.Type), typeof(Type))
-                        ),
-                    column.Type
-                    );
+                //Expression value = Expression.Convert(
+                //    Expression.Call(typeof (Convert), "ChangeType", null,
+                //                    Expression.Call(reader, "GetValue", null, Expression.Constant(iOrdinal)),
+                //                    Expression.Constant(TypeHelper.GetNonNullableType(column.Type), typeof(Type))
+                //        ),
+                //    column.Type
+                //    );
+
+                Expression value = Expression.Convert(Expression.Call(typeof (ValueTypeConverter),
+                                                                      "ChangeType",
+                                                                      null,
+                                                                      Expression.Call(reader,
+                                                                                      "GetValue",
+                                                                                      null,
+                                                                                      Expression.Constant(iOrdinal)),
+                                                                      Expression.Constant(
+                                                                          TypeHelper.GetNonNullableType(column.Type),
+                                                                          typeof (Type))),
+                                                      column.Type);
 
                 return Expression.Condition(
                     Expression.Call(reader, "IsDBNull", null, Expression.Constant(iOrdinal)),
