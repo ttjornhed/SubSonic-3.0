@@ -81,12 +81,14 @@ namespace SubSonic.Tests.Unit.SchemaTables
 
     [SubSonicDataProviderTableNameOverride(typeof(SqlServerProvider),"SqlServerTableName")]
     [SubSonicDataProviderTableNameOverride(typeof(OracleProvider), "OracleTableName")]
+    [SubSonicDataProviderTableNameOverride(typeof(OracleDataAccessProvider), "OracleTableName")]
     public class TestTypeWithDataProviderNameOverrides
     {
         public int ID { get; set; }
 
         [SubSonicDataProviderColumnNameOverride(typeof(SqlServerProvider), "SqlServerColumnName")]
         [SubSonicDataProviderColumnNameOverride(typeof(OracleProvider), "OracleColumnName")]
+        [SubSonicDataProviderColumnNameOverride(typeof(OracleDataAccessProvider), "OracleColumnName")]
         public int PropertyNameOverrides { get; set; }
     }
 

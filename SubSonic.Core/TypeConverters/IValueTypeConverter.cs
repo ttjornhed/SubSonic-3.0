@@ -3,7 +3,7 @@ using SubSonic.Configuration;
 
 namespace SubSonic.TypeConverters
 {
-    public interface IValueTypeConverter<TSourceType, TDestinationType>
+    public interface IValueTypeConverter<in TSourceType, out TDestinationType>
     {
         TDestinationType Convert(TSourceType value);
     }
@@ -16,7 +16,7 @@ namespace SubSonic.TypeConverters
         }
     }
 
-    public class ValueTypeConverter
+    public class ValueTypeConverterService
     {
         public static object ChangeType(Object value, Type conversionType)
         {
