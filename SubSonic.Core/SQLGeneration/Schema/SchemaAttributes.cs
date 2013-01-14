@@ -169,7 +169,7 @@ namespace SubSonic.SqlGeneration.Schema
             return true;
         }
 
-        public void Apply(IColumn column, IDataProvider provider)
+        public virtual void Apply(IColumn column, IDataProvider provider)
         {
             column.IsPrimaryKey = true;
             column.IsNullable = false;
@@ -177,6 +177,32 @@ namespace SubSonic.SqlGeneration.Schema
                 column.AutoIncrement = AutoIncrement;
             else if (column.IsString && column.MaxLength == 0)
                 column.MaxLength = 255;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class SubSonicDataProviderPrimaryKeyAttribute: SubSonicPrimaryKeyAttribute
+    {
+        private readonly Type _dataProviderType;
+
+        public SubSonicDataProviderPrimaryKeyAttribute(Type dataProviderType) : this(dataProviderType, true)
+        {
+        }
+
+        public SubSonicDataProviderPrimaryKeyAttribute(Type dataProviderType, bool autoIncrement) : base(autoIncrement)
+        {
+            if (!dataProviderType.GetInterfaces().ToList().Contains(typeof(IDataProvider)))
+                throw new ArgumentException("Type must implement IDataProvider interface", "dataProviderType");
+            _dataProviderType = dataProviderType;
+        }
+
+        public override void Apply(IColumn column, IDataProvider provider)
+        {
+            if (provider != null
+                && provider.GetType() == _dataProviderType)
+            {
+                base.Apply(column, provider);
+            }
         }
     }
 
