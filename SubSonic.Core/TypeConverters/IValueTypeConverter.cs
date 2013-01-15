@@ -25,13 +25,32 @@ namespace SubSonic.TypeConverters
         }
     }
 
+    public class DecimalToInt32ValueTypeConverter: IValueTypeConverter<Decimal, int>
+    {
+        public int Convert(Decimal value)
+        {
+            return (int) value;
+        }
+    }
+
+    public class Int16ToBooleanValueTypeConverter: IValueTypeConverter<short, bool>
+    {
+        public bool Convert(short value)
+        {
+            return value != 0;
+        }
+    }
+
     public class ValueTypeConverterService
     {
         public static object ChangeType(Object value, Type destinationType)
         {
+            if (EquivalentTypes(value.GetType(), destinationType))
+            {
+                return value;
+            }
             try
             {
-                
                 var valueTypeConverter = LocateValueTypeConverter(value.GetType(), destinationType);
                 return valueTypeConverter.GetType().GetMethod("Convert").Invoke(valueTypeConverter, new[] {value});
             }
@@ -41,27 +60,25 @@ namespace SubSonic.TypeConverters
             }
         }
 
-        private static object LocateValueTypeConverter(Type sourceType, Type destinationType)
+        private static bool EquivalentTypes(Type sourceType, Type destinationType)
         {
-            try
-            {
-                return TryLocateValueTypeConverter(sourceType, destinationType);
-                
-            }
-            catch (Castle.MicroKernel.ComponentNotFoundException)
-            {
-                return TryLocateValueTypeConverter(sourceType, destinationType.ToNotNullable());
-            }  
+            return sourceType.ToNotNullable() == destinationType.ToNotNullable();
         }
 
-        private static object TryLocateValueTypeConverter(Type sourceType, Type destinationType)
+        private static object LocateValueTypeConverter(Type sourceType, Type destinationType)
         {
-            var valueTypeConverterInterface = typeof(IValueTypeConverter<,>).MakeGenericType(sourceType, destinationType);
-                return Configurator.Container.Resolve(valueTypeConverterInterface);
+            var valueTypeConverterInterface = typeof (IValueTypeConverter<,>).MakeGenericType(sourceType,
+                                                                                              destinationType
+                                                                                                  .ToNotNullable());
+            return Configurator.Container.Resolve(valueTypeConverterInterface);
         }
 
         public static Func<object, object> ChangeTypeFunction(Type sourceType, Type destinationType, bool returnNullIfValueTypeConverterIsNotFound = false)
         {
+            if (EquivalentTypes(sourceType, destinationType))
+            {
+                return src => src;
+            }
             try
             {
                 var valueTypeConverter = LocateValueTypeConverter(sourceType, destinationType);
