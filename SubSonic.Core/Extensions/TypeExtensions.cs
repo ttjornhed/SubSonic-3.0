@@ -1,5 +1,8 @@
 using System;
+<<<<<<< HEAD
 using System.Linq;
+=======
+>>>>>>> 3bb947a811ef025821d4116fb33261404047507d
 
 namespace SubSonic.Extensions
 {
@@ -14,6 +17,7 @@ namespace SubSonic.Extensions
             }
             return type;
         }
+<<<<<<< HEAD
 
         public static bool Implements(this Type type, Type interfaceType)
         {
@@ -21,5 +25,7 @@ namespace SubSonic.Extensions
                 throw new ArgumentException("Argument must be an interface type.", "interfaceType");
             return type.GetInterfaces().ToList().Contains(interfaceType);
         }
+=======
+>>>>>>> 3bb947a811ef025821d4116fb33261404047507d
     }
 }

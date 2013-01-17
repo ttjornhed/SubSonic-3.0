@@ -193,7 +193,22 @@ namespace SubSonic.DataProviders.Oracle
 						sb.Append("))");
 						return m;
 				}
-			} else if (m.Method.DeclaringType == typeof(DateTime)) {
+
+			}
+            else if (m.Method.DeclaringType == typeof(SubSonic.Extensions.Strings))
+            {
+                switch (m.Method.Name)
+                {
+                    case "Wildcard":
+                        sb.Append("(");
+                        this.Visit(m.Arguments[0]);
+                        sb.Append(" LIKE ");
+                        this.Visit(m.Arguments[1]);
+                        sb.Append(" )");
+                        return m;
+                }
+            }
+            else if (m.Method.DeclaringType == typeof(DateTime)) {
 				switch (m.Method.Name) {
 					case "op_Subtract":
 						if (m.Arguments[1].Type == typeof(DateTime)) {
