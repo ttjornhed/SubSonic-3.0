@@ -9,7 +9,6 @@ namespace SubSonic.TypeConverters
         TDestinationType Convert(TSourceType value);
     }
 
-<<<<<<< HEAD
     public class ByteArrayToGuidValueTypeConverter : IValueTypeConverter<byte[], Guid>
     {
         public Guid Convert(byte[] value)
@@ -18,8 +17,6 @@ namespace SubSonic.TypeConverters
         }
     }
 
-=======
->>>>>>> 3bb947a811ef025821d4116fb33261404047507d
     public class StringToGuidValueTypeConverter : IValueTypeConverter<String, Guid>
     {
         public Guid Convert(string value)
