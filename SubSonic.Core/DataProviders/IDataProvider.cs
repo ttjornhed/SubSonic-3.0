@@ -76,7 +76,7 @@ namespace SubSonic.DataProviders
         DbConnection CreateConnection();
         void MigrateToDatabase<T>(Assembly assembly);
         void MigrateNamespaceToDatabase(string modelNamespace, Assembly assembly);
-        object ConvertDataValueForThisProvider(object input);
+        object ConvertDataValueForThisProvider(QueryParameter parameter);
         DbType ConvertDataTypeToDbType(DbType dataType);
         bool ExecuteDetachedForDebug { get; set; }
         QueryDebugInfo LastExecuteDebug { get; set; }

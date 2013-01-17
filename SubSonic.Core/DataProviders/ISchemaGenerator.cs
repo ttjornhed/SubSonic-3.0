@@ -13,6 +13,7 @@
 // 
 using System.Data;
 using SubSonic.DataProviders;
+using SubSonic.Query;
 using SubSonic.Schema;
 
 
@@ -97,7 +98,7 @@ namespace SubSonic.DataProviders
         /// </summary>
         /// <param name="input">The original data.</param>
         /// <returns>The object to set the parameter's value to.</returns>
-        object ConvertDataValueForThisProvider(object input);
+        object ConvertDataValueForThisProvider(QueryParameter parameter);
 
         DbType ConvertDataTypeToDbType(DbType dataType);
 

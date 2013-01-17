@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Text;
 using SubSonic.Extensions;
+using SubSonic.Query;
 using SubSonic.Schema;
 using SubSonic.SqlGeneration.Schema;
 
@@ -298,20 +299,20 @@ namespace SubSonic.DataProviders.DB2
                 column.DefaultSetting = 0;
         }
 
-		public override object ConvertDataValueForThisProvider(object input) {
-			if (input == null)
+		public override object ConvertDataValueForThisProvider(QueryParameter parameter) {
+			if (parameter.ParameterValue == null)
 			{
 				return null;
 			}
-			if(input is bool)
+            if (parameter.ParameterValue is bool)
 			{
-				return (bool)input ? 1 : 0;
+                return (bool)parameter.ParameterValue ? 1 : 0;
 			}
-			if (input is Guid)
+            if (parameter.ParameterValue is Guid)
 			{
-				return input.ToString();
+                return parameter.ParameterValue.ToString();
 			}
-			return base.ConvertDataValueForThisProvider(input);
+			return base.ConvertDataValueForThisProvider(parameter);
 		}
 
 		public override DbType ConvertDataTypeToDbType(DbType dataType) {

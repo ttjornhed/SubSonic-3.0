@@ -18,6 +18,7 @@ using System.Data.Common;
 using System.Text;
 using SubSonic.Extensions;
 using SubSonic.DataProviders;
+using SubSonic.Query;
 using SubSonic.Schema;
 
 namespace SubSonic.SqlGeneration.Schema
@@ -239,9 +240,9 @@ namespace SubSonic.SqlGeneration.Schema
             return string.Format(DROP_TABLE, table);
         }
 
-        public virtual object ConvertDataValueForThisProvider(object input)
+        public virtual object ConvertDataValueForThisProvider(QueryParameter parameter)
         {
-            return input;
+            return parameter.ParameterValue;
         }
 
         public virtual DbType ConvertDataTypeToDbType(DbType dataType)

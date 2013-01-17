@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Text;
 using SubSonic.DataProviders;
 using SubSonic.Extensions;
+using SubSonic.Query;
 using SubSonic.Schema;
 using SubSonic.SqlGeneration.Schema;
 
@@ -402,23 +403,50 @@ EXECUTE IMMEDIATE '
                 column.DefaultSetting = 0;
         }
 
-		public override object ConvertDataValueForThisProvider(object input) {
-			if (input == null)
+		public override object ConvertDataValueForThisProvider(QueryParameter parameter) {
+			if (parameter.ParameterValue == null)
 			{
 				return null;
 			}
-			if(input is bool)
+			if(parameter.ParameterValue is bool)
 			{
-				return (bool)input ? 1 : 0;
+				return (bool)parameter.ParameterValue ? 1 : 0;
 			}
-			if (input is Guid)
+			if (parameter.ParameterValue is Guid)
 			{
-				return input.ToString();
+			    return ConvertGuid((Guid) parameter.ParameterValue, parameter.DataType, parameter.Size);
 			}
-			return base.ConvertDataValueForThisProvider(input);
+			return base.ConvertDataValueForThisProvider(parameter);
 		}
 
-		public override DbType ConvertDataTypeToDbType(DbType dataType) {
+	    private object ConvertGuid(Guid guid, DbType dataType, int size)
+	    {
+	        switch (dataType)
+	        {
+	            case DbType.AnsiString:
+                case DbType.AnsiStringFixedLength:
+                case DbType.String:
+                case DbType.StringFixedLength:
+	                switch (size)
+	                {
+	                    case 32:
+	                        return guid.ToString("N");
+                        case 36:
+	                        return guid.ToString("D");
+                        case 38:
+                            // TODO: No idea whether to use the B or P specifier (assuming P)
+	                        return guid.ToString("P");
+                        default:
+	                        return guid.ToString();
+	                }
+	            case DbType.Binary:
+	                return guid.ToByteArray();
+                default:
+                    return guid.ToString();
+	        }
+	    }
+
+	    public override DbType ConvertDataTypeToDbType(DbType dataType) {
 			if(dataType == DbType.Guid)
 			{
 				return DbType.String;

@@ -15,6 +15,7 @@ using System;
 using System.Data;
 using System.Linq;
 using SubSonic.DataProviders;
+using SubSonic.Extensions;
 using SubSonic.Schema;
 
 namespace SubSonic.SqlGeneration.Schema
@@ -103,7 +104,83 @@ namespace SubSonic.SqlGeneration.Schema
 
         public SubSonicDataProviderColumnNameOverrideAttribute(Type dataProviderType, string tableName) : base(tableName)
         {
-            if (!dataProviderType.GetInterfaces().ToList().Contains(typeof(IDataProvider)))
+            if (!dataProviderType.Implements(typeof(IDataProvider)))
+                throw new ArgumentException("Type must implement IDataProvider interface", "dataProviderType");
+            _dataProviderType = dataProviderType;
+        }
+
+        public override void Apply(IColumn column, IDataProvider provider)
+        {
+            if (provider != null
+                && provider.GetType() == _dataProviderType)
+            {
+                base.Apply(column, provider);
+            }
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class SubSonicDbTypeAttribute: Attribute, IPropertyMappingAttribute
+    {
+        private readonly DbType _dbType;
+        private readonly int _numericScale;
+        private readonly int? _maxLegth;
+        private readonly int _numericPrecision;
+
+        public SubSonicDbTypeAttribute(DbType dbType)
+        {
+            _dbType = dbType;
+        }
+
+        public SubSonicDbTypeAttribute(DbType dbType, int maxLegth) : this(dbType)
+        {
+            _maxLegth = maxLegth;
+        }
+
+        public SubSonicDbTypeAttribute(DbType dbType, int numericScale, int numericPrecision): this(dbType)
+        {
+            _numericScale = numericScale;
+            _numericPrecision = numericPrecision;
+        }
+
+        public bool Accept(IColumn column)
+        {
+            return true;
+        }
+
+        public virtual void Apply(IColumn column, IDataProvider provider)
+        {
+            column.DataType = _dbType;
+            if (_maxLegth.HasValue)
+                column.MaxLength = _maxLegth.Value;
+            column.NumberScale = _numericScale;
+            column.NumericPrecision = _numericPrecision;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class SubSonicDataProviderDbTypeAttribute : SubSonicDbTypeAttribute
+    {
+        private readonly Type _dataProviderType;
+
+        public SubSonicDataProviderDbTypeAttribute(Type dataProviderType, DbType dbType) : base(dbType)
+        {
+            if (!dataProviderType.Implements(typeof(IDataProvider)))
+                throw new ArgumentException("Type must implement IDataProvider interface", "dataProviderType");
+            _dataProviderType = dataProviderType;
+        }
+
+        public SubSonicDataProviderDbTypeAttribute(Type dataProviderType, DbType dbType, int maxLegth) : base(dbType, maxLegth)
+        {
+            if (!dataProviderType.Implements(typeof(IDataProvider)))
+                throw new ArgumentException("Type must implement IDataProvider interface", "dataProviderType");
+            _dataProviderType = dataProviderType;
+        }
+
+        public SubSonicDataProviderDbTypeAttribute(Type dataProviderType, DbType dbType, int numericScale, int numericPrecision)
+            : base(dbType, numericScale, numericPrecision)
+        {
+            if (!dataProviderType.Implements(typeof(IDataProvider)))
                 throw new ArgumentException("Type must implement IDataProvider interface", "dataProviderType");
             _dataProviderType = dataProviderType;
         }

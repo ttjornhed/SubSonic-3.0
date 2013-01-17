@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace SubSonic.Extensions
 {
@@ -12,6 +13,13 @@ namespace SubSonic.Extensions
                 return type.GetGenericArguments()[0];
             }
             return type;
+        }
+
+        public static bool Implements(this Type type, Type interfaceType)
+        {
+            if (!interfaceType.IsInterface)
+                throw new ArgumentException("Argument must be an interface type.", "interfaceType");
+            return type.GetInterfaces().ToList().Contains(interfaceType);
         }
     }
 }

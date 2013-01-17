@@ -365,9 +365,9 @@ namespace SubSonic.DataProviders
             return CreateConnection(ConnectionString);
         }
 
-        public object ConvertDataValueForThisProvider(object input)
+        public object ConvertDataValueForThisProvider(QueryParameter parameter)
         {
-            return SchemaGenerator.ConvertDataValueForThisProvider(input);
+            return parameter.ParameterValue == null ? DBNull.Value : SchemaGenerator.ConvertDataValueForThisProvider(parameter);
         }
 
         public DbType ConvertDataTypeToDbType(DbType dataType)
@@ -477,7 +477,7 @@ namespace SubSonic.DataProviders
                         p.Size = param.Size;
 
                     //fix for NULLs as parameter values
-                    p.Value = ConvertDataValueForThisProvider(param.ParameterValue ?? DBNull.Value);
+                    p.Value = ConvertDataValueForThisProvider(param);
 
                     cmd.Parameters.Add(p);
                 }

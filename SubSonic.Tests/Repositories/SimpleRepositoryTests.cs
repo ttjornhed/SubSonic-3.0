@@ -34,7 +34,7 @@ namespace SubSonic.Tests.Repositories
             get { return new string[] { "1.00", "2.00", "3.00" }; }
         }
 
-        public SimpleRepositoryTests(IDataProvider provider)
+        protected SimpleRepositoryTests(IDataProvider provider)
         {
             provider.SetLogger(new TextWriterLogAdapter(Console.Out));
             _repo = new SimpleRepository(provider, SimpleRepositoryOptions.RunMigrations);
@@ -43,7 +43,7 @@ namespace SubSonic.Tests.Repositories
                             "Shwerkos", "DummyForDeletes", "Shwerko2s", "Shwerko3s", "NonAutoIncrementingIdWithDefaultSettings");            
         }
 
-        public SimpleRepositoryTests(IRepository repo)
+        protected SimpleRepositoryTests(IRepository repo)
         {
             _repo = repo;
         }
@@ -102,6 +102,18 @@ namespace SubSonic.Tests.Repositories
 
             item = _repo.Single<Shwerko>(x => x.Key == id);
             Assert.Equal(id, item.Key);
+        }
+
+        [Fact]
+        public void Simple_Repo_Should_Get_All_Filtered_By_Guid()
+        {
+            var id = Guid.NewGuid();
+            var item = CreateTestRecord(id);
+            _repo.Add(item);
+
+            var result = _repo.All<Shwerko>().Where(x => x.Key == id).ToList();
+
+            Assert.Equal(1, result.Count);
         }
 
         [Fact]
