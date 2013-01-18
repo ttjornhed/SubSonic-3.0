@@ -906,7 +906,7 @@ namespace SubSonic.Linq.Structure
                     return "";
             }
         }
-        private string GetOperator(BinaryExpression b)
+        protected string GetOperator(BinaryExpression b)
         {
             switch (b.NodeType)
             {

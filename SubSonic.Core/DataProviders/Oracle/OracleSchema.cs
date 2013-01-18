@@ -419,7 +419,7 @@ EXECUTE IMMEDIATE '
 			return base.ConvertDataValueForThisProvider(parameter);
 		}
 
-	    private object ConvertGuid(Guid guid, DbType dataType, int size)
+	    internal static object ConvertGuid(Guid guid, DbType dataType, int size)
 	    {
 	        switch (dataType)
 	        {

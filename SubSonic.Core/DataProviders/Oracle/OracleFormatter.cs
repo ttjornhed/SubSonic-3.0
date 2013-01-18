@@ -528,14 +528,57 @@ namespace SubSonic.DataProviders.Oracle
 
         protected override void WriteValue(object value)
         {
-			if(Type.GetTypeCode(value.GetType()) == TypeCode.DateTime)
-			{
-				sb.Append("to_date('");
-				sb.Append(((DateTime)value).ToString("yyyy-MM-ddTHH:mm:ss"));
-				sb.Append("','YYYY-MM-DD\"T\"HH24:MI:SS')");
-				return;
-			}
-			base.WriteValue(value);
-		}
+            if (Type.GetTypeCode(value.GetType()) == TypeCode.DateTime)
+            {
+                sb.Append("to_date('");
+                sb.Append(((DateTime) value).ToString("yyyy-MM-ddTHH:mm:ss"));
+                sb.Append("','YYYY-MM-DD\"T\"HH24:MI:SS')");
+                return;
+            }
+            base.WriteValue(value);
+        }
+
+	    protected override Expression VisitBinary(BinaryExpression b)
+        {
+            if (b.NodeType == ExpressionType.Equal
+                || b.NodeType == ExpressionType.NotEqual)
+                return ExploreSpecializedEqualityExpression(b);
+            return base.VisitBinary(b);
+        }
+
+	    private Expression ExploreSpecializedEqualityExpression(BinaryExpression binaryExpression)
+	    {
+	        var left = binaryExpression.Left;
+	        var right = binaryExpression.Right;
+
+            if (left.NodeType == (ExpressionType) DbExpressionType.Column)
+            {
+                if (right.NodeType == ExpressionType.Constant)
+                {
+                    var constantExpresison = (ConstantExpression)right;
+                    if (constantExpresison.Value != null
+                        && constantExpresison.Type == typeof (Guid))
+                    {
+                        var columnExpression = (ColumnExpression) left;
+                        if (columnExpression.Column != null)
+                        {
+                            sb.Append("( LOWER(");
+                            Visit(left);
+                            sb.Append(") ");
+                            sb.Append(GetOperator(binaryExpression));
+                            sb.Append(" LOWER('");
+                            sb.Append(OracleSchema.ConvertGuid((Guid) constantExpresison.Value,
+                                                               columnExpression.Column.DataType,
+                                                               columnExpression.Column.MaxLength));
+                            sb.Append("') ");
+                            sb.Append(" )");
+                            return binaryExpression;
+                        }
+                    }
+                }
+            }
+
+	        return base.VisitBinary(binaryExpression);
+	    }
 	}
 }
