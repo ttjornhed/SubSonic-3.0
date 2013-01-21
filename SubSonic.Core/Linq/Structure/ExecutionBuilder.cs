@@ -235,9 +235,11 @@ namespace SubSonic.Linq.Structure
             scope = saveScope;
 			List<string> columnNames = ColumnNamedGatherer.Gather(projector.Body);//mike
             string commandText = policy.Mapping.Language.Format(projection.Source);
-            ReadOnlyCollection<NamedValueExpression> namedValues = NamedValueGatherer.Gather(projection.Source);
-            string[] names = namedValues.Select(v => v.Name).ToArray();
-            Expression[] values = namedValues.Select(v => Expression.Convert(Visit(v.Value), typeof (object))).ToArray();
+            var namedValues = NamedValueGatherer.Gather(projection.Source);
+            var names = namedValues.Select(v => v.Name).ToArray();
+		    Expression[] values = namedValues.Select(v => Expression.Convert(
+		        v.ParameterBindingAction != null ? v.ParameterBindingAction((ConstantExpression)v.Value) : Visit(v.Value),
+		        typeof (object))).ToArray();
 
             string methExecute = okayToDefer
                                      ? "ExecuteDeferred"

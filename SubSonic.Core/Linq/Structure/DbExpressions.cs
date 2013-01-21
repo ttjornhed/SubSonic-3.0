@@ -628,6 +628,8 @@ namespace SubSonic.Linq.Structure
         {
             get { return this.value; }
         }
+
+        public Func<ConstantExpression, Expression> ParameterBindingAction { get; set; }
     }
 
     /// <summary>
