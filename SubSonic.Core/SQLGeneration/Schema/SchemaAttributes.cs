@@ -74,6 +74,11 @@ namespace SubSonic.SqlGeneration.Schema
                 base.Apply(table, provider);
             }
         }
+
+        public Type GetProviderType()
+        {
+            return _dataProviderType;
+        }
     }
 
     [AttributeUsage(AttributeTargets.Property)]
@@ -116,6 +121,11 @@ namespace SubSonic.SqlGeneration.Schema
             {
                 base.Apply(column, provider);
             }
+        }
+
+        public Type GetProviderType()
+        {
+            return _dataProviderType;
         }
     }
 
