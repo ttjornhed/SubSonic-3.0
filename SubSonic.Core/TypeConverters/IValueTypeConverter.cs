@@ -9,6 +9,14 @@ namespace SubSonic.TypeConverters
         TDestinationType Convert(TSourceType value);
     }
 
+    public class SingleToDecimalValueTypeConverter:IValueTypeConverter<Single, Decimal>
+    {
+        public decimal Convert(float value)
+        {
+            return new decimal(value);
+        }
+    }
+
     public class ByteArrayToGuidValueTypeConverter : IValueTypeConverter<byte[], Guid>
     {
         public Guid Convert(byte[] value)
