@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using SubSonic.Configuration;
 using SubSonic.Extensions;
 
@@ -7,6 +8,14 @@ namespace SubSonic.TypeConverters
     public interface IValueTypeConverter<in TSourceType, out TDestinationType>
     {
         TDestinationType Convert(TSourceType value);
+    }
+
+    public class DecimalToStringValueTypeConverter : IValueTypeConverter<decimal, string>
+    {
+        public string Convert(decimal value)
+        {
+            return value.ToString(CultureInfo.InvariantCulture);
+        }
     }
 
     public class SingleToDecimalValueTypeConverter:IValueTypeConverter<Single, Decimal>
