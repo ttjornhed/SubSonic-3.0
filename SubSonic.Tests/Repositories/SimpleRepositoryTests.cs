@@ -580,6 +580,60 @@ namespace SubSonic.Tests.Repositories
             Assert.Equal("Common", result[0].Name);
         }
 
+        [Serializable]
+        public class ValueModel
+        {
+            public int Id { get; set; }
+            public string Code { get; set; }
+        }
+
+        [Fact]
+        public void Simple_Repo_Should_Support_Joins_And_Projections()
+        {
+            GivenShwerkoAndShwerko2WithName("Common");
+
+            var result =  (from x in _repo.All<Shwerko>()
+                          
+                          orderby x.ElDate descending
+                           select new ValueModel
+                           {
+                               Id = x.NullInt.GetValueOrDefault(0),
+                               Code = x.Name,
+                           }).ToList();
+
+            Assert.Equal(1, result.Count);
+            Assert.Equal("Common", result[0].Code);
+            
+        }
+
+        [Serializable]
+        public class ValueModel2
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Code { get; set; }
+        }
+
+        [Fact]
+        public void Simple_Repo_Should_Support_Joins_And_Projections_2()
+        {
+            GivenShwerkoAndShwerko2WithName("Common");
+
+            var result = (from x in _repo.All<Shwerko>()
+
+                          orderby x.ElDate descending
+                          select new ValueModel2
+                          {
+                              Id = x.NullInt.GetValueOrDefault(0),
+                              Code = x.Name,
+                              Name = x.Name,
+                          }).ToList();
+
+            Assert.Equal(1, result.Count);
+            Assert.Equal("Common", result[0].Code);
+            Assert.Equal("Common", result[0].Name);
+        }
+
         [Fact]
         public void Simple_Repo_Should_Support_Projection_Joins_With_Anon_Types()
         {
