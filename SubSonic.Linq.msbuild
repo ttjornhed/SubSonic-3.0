@@ -36,6 +36,8 @@
       AllowDuplicateTypes="@(allowDuplicates)" 
       OutputFile="$(outputFile)" 
       ToolPath="$(toolsDir)\ILMerge"
+      Internalize="true"
+      TargetKind="library"
       DebugInfo="false" />
   </Target>
 
