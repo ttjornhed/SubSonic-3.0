@@ -2134,13 +2134,31 @@ namespace PetaPoco
 							converter = src => Convert.ChangeType(src, typeof (int), null);
 						}
 					}
-					else if (!dstType.IsAssignableFrom(srcType))
-					{
-                        converter = ValueTypeConverterService.ChangeTypeFunction(srcType, dstType, true)
-                                    ?? (src => Convert.ChangeType(src, dstType, null));
-					}
-				}
-				return converter;
+                    else if (!dstType.IsAssignableFrom(srcType))
+                    {
+                        //Handle conversion of null types correctly.  I'm using the logic from
+                        //  https://github.com/mbinette/PetaPoco/commit/a6be8c2b5c959ff3eff8c7327e0bfe29908cc07e
+                        Type nullableUnderlyingType = Nullable.GetUnderlyingType(dstType);
+
+                        if (nullableUnderlyingType != null)
+                        {
+                            converter = ValueTypeConverterService.ChangeTypeFunction(srcType, dstType, true)
+                                        ?? (src =>
+                                                {
+                                                    if (src == null)
+                                                        return null;
+                                                    return Convert.ChangeType(src, nullableUnderlyingType, null);
+                                                }
+                                                );
+                        }
+                        else
+                        {
+                            converter = ValueTypeConverterService.ChangeTypeFunction(srcType, dstType, true)
+                                        ?? (src => Convert.ChangeType(src, dstType, null));
+                        }
+                    }
+                }
+                return converter;
 			}
 
 
