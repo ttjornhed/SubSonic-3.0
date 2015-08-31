@@ -49,7 +49,17 @@ WHERE ([t0].[ContactName] LIKE '%' + 'har' + '%')";
 			}
 		}
 
-		public string Contains_With_LocalCollection_2_True
+	    public string Contains_With_LocalCollection_Empty_Array
+	    {
+            get
+            {
+                return @"SELECT [t0].[Address], [t0].[City], [t0].[CompanyName], [t0].[ContactName], [t0].[Country], [t0].[CustomerID], [t0].[Region]
+FROM [Customers] AS t0
+WHERE 1 = 0";
+            }
+	    }
+
+	    public string Contains_With_LocalCollection_2_True
 		{
 			get
 			{

@@ -1442,10 +1442,10 @@ namespace SubSonic.Linq.Structure
 
         protected override Expression VisitIn(InExpression @in)
         {
-            this.VisitValue(@in.Expression);
-            sb.Append(" IN (");
             if (@in.Select != null)
             {
+                this.VisitValue(@in.Expression);
+                sb.Append(" IN (");
                 this.AppendNewLine(Indentation.Inner);
                 this.Visit(@in.Select);
                 this.AppendNewLine(Indentation.Same);
@@ -1454,12 +1454,27 @@ namespace SubSonic.Linq.Structure
             }
             else if (@in.Values != null)
             {
-                for (int i = 0, n = @in.Values.Count; i < n; i++)
+                if (@in.Values.Any())
                 {
-                    if (i > 0) sb.Append(", ");
-                    this.VisitValue(@in.Values[i]);
+                    this.VisitValue(@in.Expression);
+                    sb.Append(" IN (");
+                    for (int i = 0, n = @in.Values.Count; i < n; i++)
+                    {
+                        if (i > 0) sb.Append(", ");
+                        this.VisitValue(@in.Values[i]);
+                    }
+                    sb.Append(")");
                 }
-                sb.Append(")");
+                else
+                {
+                    //If Values is empty, the generated string "ColumnName IN ()" is invalid sql, but
+                    //  that logic should always return false, so we can just replace it with a false statement
+                    sb.Append(" 1 = 0 ");
+                }
+            }
+            else
+            {
+                throw new Exception("Either .Values or .Select must be populated.");
             }
             return @in;
         }

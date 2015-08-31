@@ -75,6 +75,15 @@ using Xunit;
 				AssertEqualIgnoringExtraWhitespaceAndCarriageReturn(_selectTestsSql.Contains_Resolves_Literal, result.GetQueryText());
 			}
 
+            [Fact]
+            public void Contains_With_LocalCollection_Empty_Array()
+            {
+                string[] ids = new string[0];
+                var result =
+                        _db.Customers.Where(c => ids.Contains(c.CustomerID));
+                AssertEqualIgnoringExtraWhitespaceAndCarriageReturn(_selectTestsSql.Contains_With_LocalCollection_Empty_Array, result.GetQueryText());
+            }
+
 			[Fact]
 			public void Contains_With_LocalCollection_2_True()
 			{

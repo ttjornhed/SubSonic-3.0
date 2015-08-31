@@ -19,10 +19,15 @@ namespace SubSonic.Tests.Unit.Linq.SqlStrings
 
 		
 		 string Contains_Resolves_Literal{ get; }
-		
-		
 
-		
+
+
+
+         string Contains_With_LocalCollection_Empty_Array { get; }
+
+
+
+
 		 string Contains_With_LocalCollection_2_True{ get; }
 		
 		
